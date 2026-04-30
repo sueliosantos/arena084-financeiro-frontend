@@ -4,7 +4,7 @@ import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
-const monthNames = ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 export default function MovimentacaoMes({ ano }) {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
@@ -37,7 +37,7 @@ export default function MovimentacaoMes({ ano }) {
       }
 
       await carregar();
-      setSuccess(status === "PAGO" ? "Lancamento marcado como pago." : "Lancamento marcado como pendente.");
+      setSuccess(status === "PAGO" ? "Lançamento marcado como pago." : "Lançamento marcado como pendente.");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -63,7 +63,7 @@ export default function MovimentacaoMes({ ano }) {
   return (
     <section>
       <PageTitle
-        title="Movimentacao Mes"
+        title="Movimentação Mês"
         actions={
           <select className="field w-full sm:w-48" value={mes} onChange={(event) => setMes(event.target.value)}>
             {monthNames.map((name, index) => (
@@ -88,13 +88,13 @@ export default function MovimentacaoMes({ ano }) {
           <thead className="bg-black/20">
             <tr>
               <th className="table-cell">Data</th>
-              <th className="table-cell">Descricao</th>
+              <th className="table-cell">Descrição</th>
               <th className="table-cell">Categoria</th>
               <th className="table-cell">Origem</th>
               <th className="table-cell">Status</th>
               <th className="table-cell">Obs</th>
               <th className="table-cell text-right">Valor</th>
-              <th className="table-cell text-right">Acao</th>
+              <th className="table-cell text-right">Ação</th>
             </tr>
           </thead>
           <tbody>

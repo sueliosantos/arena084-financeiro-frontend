@@ -9,8 +9,8 @@ import Recorrentes from "./pages/Recorrentes.jsx";
 
 const tabs = [
   { id: "dashboard", label: "Dash", icon: BarChart3, component: Dashboard },
-  { id: "movimentacao", label: "Movimentacao Mes", icon: CalendarDays, component: MovimentacaoMes },
-  { id: "lancamentos", label: "Lancamentos", icon: WalletCards, component: Lancamentos },
+  { id: "movimentacao", label: "Movimentação Mês", icon: CalendarDays, component: MovimentacaoMes },
+  { id: "lancamentos", label: "Lançamentos", icon: WalletCards, component: Lancamentos },
   { id: "recorrentes", label: "Recorrentes", icon: Repeat, component: Recorrentes },
   { id: "categorias", label: "Categoria", icon: FolderTree, component: Categorias }
 ];

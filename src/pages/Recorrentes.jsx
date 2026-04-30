@@ -11,6 +11,7 @@ const initialForm = {
   categoriaId: "",
   dataInicio: dateInput(new Date()),
   dataFim: "",
+  diaPagamento: "",
   ativo: true
 };
 
@@ -44,6 +45,7 @@ export default function Recorrentes() {
         ...form,
         valor: Number(form.valor),
         categoriaId: Number(form.categoriaId),
+        diaPagamento: form.diaPagamento ? Number(form.diaPagamento) : null,
         dataFim: form.dataFim || null
       };
 
@@ -80,6 +82,7 @@ export default function Recorrentes() {
       categoriaId: item.categoriaId,
       dataInicio: dateInput(item.dataInicio),
       dataFim: item.dataFim ? dateInput(item.dataFim) : "",
+      diaPagamento: item.diaPagamento ? String(item.diaPagamento) : "",
       ativo: item.ativo
     });
     setAplicarAPartir(dateInput(new Date()));
@@ -92,7 +95,7 @@ export default function Recorrentes() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[360px_1fr]">
         <form className="panel space-y-3" onSubmit={submit}>
-          <input className="field" placeholder="Descricao" value={form.descricao} onChange={(event) => setForm({ ...form, descricao: event.target.value })} />
+          <input className="field" placeholder="Descrição" value={form.descricao} onChange={(event) => setForm({ ...form, descricao: event.target.value })} />
           <div className="grid grid-cols-2 gap-2">
             <select className="field" value={form.tipo} onChange={(event) => setForm({ ...form, tipo: event.target.value, categoriaId: "" })}>
               <option value="DESPESA">Despesa</option>
@@ -109,11 +112,32 @@ export default function Recorrentes() {
             ))}
           </select>
           <div className="grid grid-cols-2 gap-2">
-            <input className="field" type="date" value={form.dataInicio} onChange={(event) => setForm({ ...form, dataInicio: event.target.value })} />
-            <input className="field" type="date" value={form.dataFim} onChange={(event) => setForm({ ...form, dataFim: event.target.value })} />
+            <label className="space-y-1 text-xs text-muted">
+              Início do período
+              <input className="field" type="date" value={form.dataInicio} onChange={(event) => setForm({ ...form, dataInicio: event.target.value })} />
+            </label>
+            <label className="space-y-1 text-xs text-muted">
+              Fim do período
+              <input className="field" type="date" value={form.dataFim} onChange={(event) => setForm({ ...form, dataFim: event.target.value })} />
+            </label>
           </div>
+          <label className="space-y-1 text-xs text-muted">
+            Dia do pagamento opcional
+            <input
+              className="field"
+              type="number"
+              min="1"
+              max="31"
+              placeholder="Vazio usa o dia do início"
+              value={form.diaPagamento}
+              onChange={(event) => setForm({ ...form, diaPagamento: event.target.value })}
+            />
+          </label>
           {editing && (
-            <input className="field" type="date" value={aplicarAPartir} onChange={(event) => setAplicarAPartir(event.target.value)} />
+            <label className="space-y-1 text-xs text-muted">
+              Aplicar alteração a partir de
+              <input className="field" type="date" value={aplicarAPartir} onChange={(event) => setAplicarAPartir(event.target.value)} />
+            </label>
           )}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.ativo} onChange={(event) => setForm({ ...form, ativo: event.target.checked })} />
@@ -124,7 +148,7 @@ export default function Recorrentes() {
           </button>
           {editing && (
             <button className="btn-secondary w-full" type="button" onClick={() => setEditing(null)}>
-              Cancelar edicao
+              Cancelar edição
             </button>
           )}
         </form>
@@ -133,9 +157,10 @@ export default function Recorrentes() {
           <table className="w-full min-w-[760px] border-collapse">
             <thead className="bg-black/20">
               <tr>
-                <th className="table-cell">Descricao</th>
+                <th className="table-cell">Descrição</th>
                 <th className="table-cell">Categoria</th>
-                <th className="table-cell">Periodo</th>
+                <th className="table-cell">Período</th>
+                <th className="table-cell">Dia pgto.</th>
                 <th className="table-cell">Ativo</th>
                 <th className="table-cell text-right">Valor</th>
                 <th className="table-cell w-32"></th>
@@ -149,7 +174,8 @@ export default function Recorrentes() {
                   <td className="table-cell">
                     {dateInput(item.dataInicio)} - {item.dataFim ? dateInput(item.dataFim) : "infinito"}
                   </td>
-                  <td className="table-cell">{item.ativo ? "Sim" : "Nao"}</td>
+                  <td className="table-cell">{item.diaPagamento || "-"}</td>
+                  <td className="table-cell">{item.ativo ? "Sim" : "Não"}</td>
                   <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
                   <td className="table-cell">
                     <div className="flex justify-end gap-2">

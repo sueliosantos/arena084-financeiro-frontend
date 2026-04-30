@@ -18,7 +18,7 @@ async function request(path, options = {}) {
       localStorage.removeItem("financeiro_user");
       window.dispatchEvent(new Event("financeiro:logout"));
     }
-    throw new Error(error.error || error.erro || "Erro na requisicao");
+    throw new Error(error.error || error.erro || "Erro na requisição");
   }
 
   if (response.status === 204) return null;

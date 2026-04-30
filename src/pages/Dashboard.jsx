@@ -88,12 +88,12 @@ export default function Dashboard({ ano, setAno }) {
       </div>
       <div className="panel mt-4 overflow-x-auto p-0">
         <div className="border-b border-line p-3">
-          <h3 className="font-semibold">Cadastrados no mes {selectedMonth?.nome || "-"}</h3>
+          <h3 className="font-semibold">Cadastrados no mês {selectedMonth?.nome || "-"}</h3>
         </div>
         <table className="w-full min-w-[720px] border-collapse">
           <thead className="bg-black/20">
             <tr>
-              <th className="table-cell">Descricao</th>
+              <th className="table-cell">Descrição</th>
               <th className="table-cell">Tipo</th>
               <th className="table-cell">Status</th>
               <th className="table-cell">Origem</th>

@@ -59,7 +59,7 @@ export default function Lancamentos() {
       await api.lancamentos.criar({ ...form, categoriaId: Number(form.categoriaId), valor: Number(form.valor) });
       setForm(initialForm);
       await carregar();
-      setSuccess("Lancamento cadastrado.");
+      setSuccess("Lançamento cadastrado.");
     } catch (err) {
       setError(err.message);
     }
@@ -90,7 +90,7 @@ export default function Lancamentos() {
   };
 
   const editarObservacao = async (item) => {
-    const observacao = window.prompt("Observacao do lancamento", item.observacao || "");
+    const observacao = window.prompt("Observação do lançamento", item.observacao || "");
     if (observacao === null) return;
 
     if (item.simulado) {
@@ -110,7 +110,7 @@ export default function Lancamentos() {
   return (
     <section>
       <PageTitle
-        title="Lancamentos"
+        title="Lançamentos"
         actions={
           <div className="grid grid-cols-2 gap-2 sm:flex">
             <select className="field w-full sm:w-28" value={mes} onChange={(event) => setMes(event.target.value)}>
@@ -139,8 +139,8 @@ export default function Lancamentos() {
                 <option value="PAGO">Pago</option>
               </select>
             </div>
-            <input className="field" placeholder="Descricao" value={form.descricao} onChange={(event) => setForm({ ...form, descricao: event.target.value })} />
-            <input className="field" placeholder="Observacao" value={form.observacao} onChange={(event) => setForm({ ...form, observacao: event.target.value })} />
+            <input className="field" placeholder="Descrição" value={form.descricao} onChange={(event) => setForm({ ...form, descricao: event.target.value })} />
+            <input className="field" placeholder="Observação" value={form.observacao} onChange={(event) => setForm({ ...form, observacao: event.target.value })} />
             <div className="grid grid-cols-2 gap-2">
               <input className="field" type="number" step="0.01" placeholder="Valor" value={form.valor} onChange={(event) => setForm({ ...form, valor: event.target.value })} />
               <input className="field" type="date" value={form.data} onChange={(event) => setForm({ ...form, data: event.target.value })} />
@@ -177,7 +177,7 @@ export default function Lancamentos() {
               <thead className="bg-black/20">
                 <tr>
                   <th className="table-cell">Data</th>
-                  <th className="table-cell">Descricao</th>
+                  <th className="table-cell">Descrição</th>
                   <th className="table-cell">Obs</th>
                   <th className="table-cell">Categoria</th>
                   <th className="table-cell">Origem</th>
@@ -201,7 +201,7 @@ export default function Lancamentos() {
                         <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => toggleStatus(item)} title="Alternar status">
                           <Check size={14} />
                         </button>
-                        <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editarObservacao(item)} title="Observacao">
+                        <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editarObservacao(item)} title="Observação">
                           <MessageSquare size={14} />
                         </button>
                         <button className="btn-danger h-8 w-8 p-0" type="button" disabled={item.simulado} onClick={() => remover(item)} title="Remover">
