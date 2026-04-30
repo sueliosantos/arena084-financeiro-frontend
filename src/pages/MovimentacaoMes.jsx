@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, Pencil } from "lucide-react";
+import { CheckCircle2, Clock3, Pencil, Save, X } from "lucide-react";
 import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
 const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+const emptyEditForm = { valor: "", data: "", status: "PENDENTE", observacao: "" };
 
 export default function MovimentacaoMes({ ano }) {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
@@ -12,6 +14,8 @@ export default function MovimentacaoMes({ ano }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editForm, setEditForm] = useState(emptyEditForm);
 
   const carregar = async () => {
     setError("");
@@ -45,12 +49,28 @@ export default function MovimentacaoMes({ ano }) {
     }
   };
 
-  const editarValor = async (item) => {
-    const valorAtual = String(item.valor ?? "").replace(".", ",");
-    const informado = window.prompt("Valor do lançamento", valorAtual);
-    if (informado === null) return;
+  const abrirEdicao = (item) => {
+    setError("");
+    setSuccess("");
+    setEditingItem(item);
+    setEditForm({
+      valor: String(item.valor ?? ""),
+      data: dateInput(item.data),
+      status: item.status,
+      observacao: item.observacao || ""
+    });
+  };
 
-    const valor = Number(informado.replace(/\./g, "").replace(",", "."));
+  const fecharEdicao = () => {
+    setEditingItem(null);
+    setEditForm(emptyEditForm);
+  };
+
+  const salvarEdicao = async (event) => {
+    event.preventDefault();
+    if (!editingItem) return;
+
+    const valor = Number(String(editForm.valor).replace(/\./g, "").replace(",", "."));
     if (!Number.isFinite(valor) || valor < 0) {
       setError("Informe um valor válido.");
       return;
@@ -58,24 +78,30 @@ export default function MovimentacaoMes({ ano }) {
 
     setError("");
     setSuccess("");
-    setUpdatingId(item.id);
+    setUpdatingId(editingItem.id);
 
     try {
-      if (item.simulado) {
+      const payload = {
+        valor,
+        data: editForm.data,
+        status: editForm.status,
+        observacao: editForm.observacao
+      };
+
+      if (editingItem.simulado) {
         await api.lancamentos.materializarRecorrente({
-          recorrenteId: item.recorrenteId,
+          recorrenteId: editingItem.recorrenteId,
           mes,
           ano,
-          status: item.status,
-          observacao: item.observacao,
-          valor
+          ...payload
         });
       } else {
-        await api.lancamentos.atualizar(item.id, { valor });
+        await api.lancamentos.atualizar(editingItem.id, payload);
       }
 
       await carregar();
-      setSuccess("Valor atualizado.");
+      fecharEdicao();
+      setSuccess("Lançamento atualizado.");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -122,7 +148,7 @@ export default function MovimentacaoMes({ ano }) {
       </div>
 
       <div className="panel mt-4 overflow-x-auto p-0">
-        <table className="w-full min-w-[900px] border-collapse">
+        <table className="w-full min-w-[960px] border-collapse">
           <thead className="bg-black/20">
             <tr>
               <th className="table-cell">Data</th>
@@ -150,9 +176,9 @@ export default function MovimentacaoMes({ ano }) {
                     <button
                       className="btn-secondary h-8 w-8 p-0"
                       type="button"
-                      onClick={() => editarValor(item)}
+                      onClick={() => abrirEdicao(item)}
                       disabled={updatingId === item.id}
-                      title="Editar valor"
+                      title="Editar lançamento"
                     >
                       <Pencil size={14} />
                     </button>
@@ -173,6 +199,60 @@ export default function MovimentacaoMes({ ano }) {
           </tbody>
         </table>
       </div>
+
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+          <form className="panel w-full max-w-lg space-y-4" onSubmit={salvarEdicao}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold">Editar lançamento</h2>
+                <p className="text-sm text-muted">{editingItem.descricao}</p>
+              </div>
+              <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={fecharEdicao} title="Fechar">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1 text-xs text-muted">
+                Valor
+                <input className="field" type="text" value={editForm.valor} onChange={(event) => setEditForm({ ...editForm, valor: event.target.value })} />
+              </label>
+              <label className="space-y-1 text-xs text-muted">
+                Data de pagamento
+                <input className="field" type="date" value={editForm.data} onChange={(event) => setEditForm({ ...editForm, data: event.target.value })} />
+              </label>
+            </div>
+
+            <label className="space-y-1 text-xs text-muted">
+              Status
+              <select className="field" value={editForm.status} onChange={(event) => setEditForm({ ...editForm, status: event.target.value })}>
+                <option value="PENDENTE">Pendente</option>
+                <option value="PAGO">Pago</option>
+              </select>
+            </label>
+
+            <label className="space-y-1 text-xs text-muted">
+              Observação
+              <textarea
+                className="field min-h-24 resize-y py-2"
+                value={editForm.observacao}
+                onChange={(event) => setEditForm({ ...editForm, observacao: event.target.value })}
+              />
+            </label>
+
+            <div className="flex justify-end gap-2">
+              <button className="btn-secondary" type="button" onClick={fecharEdicao}>
+                Cancelar
+              </button>
+              <button className="btn" type="submit" disabled={updatingId === editingItem.id}>
+                <Save size={16} />
+                Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </section>
   );
 }
