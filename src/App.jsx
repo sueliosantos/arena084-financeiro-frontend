@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, FolderTree, LogOut, Repeat, WalletCards } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, FolderTree, LogOut, Repeat, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import Categorias from "./pages/Categorias.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -6,11 +6,13 @@ import Lancamentos from "./pages/Lancamentos.jsx";
 import Login from "./pages/Login.jsx";
 import MovimentacaoMes from "./pages/MovimentacaoMes.jsx";
 import Recorrentes from "./pages/Recorrentes.jsx";
+import Relatorio from "./pages/Relatorio.jsx";
 
 const tabs = [
   { id: "dashboard", label: "Dash", icon: BarChart3, component: Dashboard },
   { id: "movimentacao", label: "Movimentação Mês", icon: CalendarDays, component: MovimentacaoMes },
   { id: "lancamentos", label: "Lançamentos", icon: WalletCards, component: Lancamentos },
+  { id: "relatorio", label: "Relatório", icon: ClipboardList, component: Relatorio },
   { id: "recorrentes", label: "Recorrentes", icon: Repeat, component: Recorrentes },
   { id: "categorias", label: "Categoria", icon: FolderTree, component: Categorias }
 ];
@@ -53,7 +55,7 @@ export default function App() {
             <h1 className="text-2xl font-semibold">Controle Financeiro</h1>
             <p className="text-sm text-muted">{user.nome}</p>
           </div>
-          <nav className="grid grid-cols-2 gap-2 sm:flex">
+          <nav className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const selected = tab.id === active;

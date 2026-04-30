@@ -6,7 +6,7 @@ import PageTitle from "../components/PageTitle.jsx";
 
 const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-const emptyEditForm = { valor: "", data: "", status: "PENDENTE", observacao: "" };
+const emptyEditForm = { valor: "", data: "", status: "PENDENTE", observacao: "", contabiliza: true };
 
 export default function MovimentacaoMes({ ano }) {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
@@ -57,7 +57,8 @@ export default function MovimentacaoMes({ ano }) {
       valor: String(item.valor ?? ""),
       data: dateInput(item.data),
       status: item.status,
-      observacao: item.observacao || ""
+      observacao: item.observacao || "",
+      contabiliza: item.contabiliza !== false
     });
   };
 
@@ -85,7 +86,8 @@ export default function MovimentacaoMes({ ano }) {
         valor,
         data: editForm.data,
         status: editForm.status,
-        observacao: editForm.observacao
+        observacao: editForm.observacao,
+        contabiliza: editForm.contabiliza
       };
 
       if (editingItem.simulado) {
@@ -113,6 +115,7 @@ export default function MovimentacaoMes({ ano }) {
     () =>
       items.reduce(
         (acc, item) => {
+          if (item.contabiliza === false) return acc;
           if (item.status === "PAGO" && item.tipo === "RECEITA") acc.receitas += Number(item.valor);
           if (item.status === "PAGO" && item.tipo === "DESPESA") acc.despesas += Number(item.valor);
           if (item.status !== "PAGO" && item.tipo === "DESPESA") acc.pendente += Number(item.valor);
@@ -156,6 +159,7 @@ export default function MovimentacaoMes({ ano }) {
               <th className="table-cell">Categoria</th>
               <th className="table-cell">Origem</th>
               <th className="table-cell">Status</th>
+              <th className="table-cell">Conta</th>
               <th className="table-cell">Obs</th>
               <th className="table-cell text-right">Valor</th>
               <th className="table-cell text-right">Ação</th>
@@ -169,6 +173,7 @@ export default function MovimentacaoMes({ ano }) {
                 <td className="table-cell">{item.categoria?.nome}</td>
                 <td className="table-cell">{item.origem}</td>
                 <td className="table-cell">{item.status}</td>
+                <td className="table-cell">{item.contabiliza === false ? "Não" : "Sim"}</td>
                 <td className="table-cell text-muted">{item.observacao || "-"}</td>
                 <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
                 <td className="table-cell text-right">
@@ -230,6 +235,15 @@ export default function MovimentacaoMes({ ano }) {
                 <option value="PENDENTE">Pendente</option>
                 <option value="PAGO">Pago</option>
               </select>
+            </label>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={editForm.contabiliza}
+                onChange={(event) => setEditForm({ ...editForm, contabiliza: event.target.checked })}
+              />
+              Contabiliza nos totais e gráficos
             </label>
 
             <label className="space-y-1 text-xs text-muted">

@@ -4,6 +4,8 @@ import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
+const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
 const initialForm = {
   tipo: "DESPESA",
   valor: "",
@@ -11,7 +13,8 @@ const initialForm = {
   observacao: "",
   data: dateInput(new Date()),
   status: "PENDENTE",
-  categoriaId: ""
+  categoriaId: "",
+  contabiliza: true
 };
 
 export default function Lancamentos() {
@@ -42,6 +45,7 @@ export default function Lancamentos() {
     () =>
       lancamentos.reduce(
         (acc, item) => {
+          if (item.contabiliza === false) return acc;
           if (item.tipo === "RECEITA") acc.receitas += Number(item.valor);
           if (item.tipo === "DESPESA") acc.despesas += Number(item.valor);
           return { ...acc, saldo: acc.receitas - acc.despesas };
@@ -82,7 +86,7 @@ export default function Lancamentos() {
   const toggleStatus = async (item) => {
     const status = item.status === "PAGO" ? "PENDENTE" : "PAGO";
     if (item.simulado) {
-      await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status, observacao: item.observacao });
+      await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status, observacao: item.observacao, contabiliza: item.contabiliza !== false });
     } else {
       await api.lancamentos.atualizar(item.id, { status });
     }
@@ -94,9 +98,19 @@ export default function Lancamentos() {
     if (observacao === null) return;
 
     if (item.simulado) {
-      await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status: item.status, observacao });
+      await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status: item.status, observacao, contabiliza: item.contabiliza !== false });
     } else {
       await api.lancamentos.atualizar(item.id, { observacao });
+    }
+    await carregar();
+  };
+
+  const toggleContabiliza = async (item) => {
+    const contabiliza = item.contabiliza === false;
+    if (item.simulado) {
+      await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status: item.status, observacao: item.observacao, contabiliza });
+    } else {
+      await api.lancamentos.atualizar(item.id, { contabiliza });
     }
     await carregar();
   };
@@ -113,10 +127,10 @@ export default function Lancamentos() {
         title="Lançamentos"
         actions={
           <div className="grid grid-cols-2 gap-2 sm:flex">
-            <select className="field w-full sm:w-28" value={mes} onChange={(event) => setMes(event.target.value)}>
-              {Array.from({ length: 12 }, (_, index) => (
-                <option key={index + 1} value={index + 1}>
-                  {String(index + 1).padStart(2, "0")}
+            <select className="field w-full sm:w-48" value={mes} onChange={(event) => setMes(event.target.value)}>
+              {monthNames.map((name, index) => (
+                <option key={name} value={index + 1}>
+                  {name} / {ano}
                 </option>
               ))}
             </select>
@@ -153,13 +167,17 @@ export default function Lancamentos() {
                 </option>
               ))}
             </select>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={form.contabiliza} onChange={(event) => setForm({ ...form, contabiliza: event.target.checked })} />
+              Contabiliza nos totais e gráficos
+            </label>
             <button className="btn w-full" type="submit">
               <Plus size={16} /> Adicionar
             </button>
           </form>
 
           <form className="panel space-y-3" onSubmit={submitWhatsApp}>
-            <input className="field" placeholder="+2000 salario ou -50 mercado" value={mensagem} onChange={(event) => setMensagem(event.target.value)} />
+            <input className="field" placeholder="+2000 salário ou -50 mercado" value={mensagem} onChange={(event) => setMensagem(event.target.value)} />
             <button className="btn-secondary w-full" type="submit">
               Importar WhatsApp
             </button>
@@ -173,7 +191,7 @@ export default function Lancamentos() {
             <Summary label="Saldo" value={totals.saldo} />
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[920px] border-collapse">
+            <table className="w-full min-w-[1040px] border-collapse">
               <thead className="bg-black/20">
                 <tr>
                   <th className="table-cell">Data</th>
@@ -182,8 +200,9 @@ export default function Lancamentos() {
                   <th className="table-cell">Categoria</th>
                   <th className="table-cell">Origem</th>
                   <th className="table-cell">Status</th>
+                  <th className="table-cell">Contabiliza</th>
                   <th className="table-cell text-right">Valor</th>
-                  <th className="table-cell w-24"></th>
+                  <th className="table-cell w-32"></th>
                 </tr>
               </thead>
               <tbody>
@@ -195,6 +214,12 @@ export default function Lancamentos() {
                     <td className="table-cell">{item.categoria?.nome}</td>
                     <td className="table-cell">{item.origem}</td>
                     <td className="table-cell">{item.status}</td>
+                    <td className="table-cell">
+                      <label className="inline-flex items-center gap-2">
+                        <input type="checkbox" checked={item.contabiliza !== false} onChange={() => toggleContabiliza(item)} />
+                        {item.contabiliza === false ? "Não" : "Sim"}
+                      </label>
+                    </td>
                     <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
                     <td className="table-cell">
                       <div className="flex justify-end gap-1">
@@ -223,7 +248,7 @@ export default function Lancamentos() {
 function Summary({ label, value }) {
   return (
     <div>
-      <span className="text-xs uppercase text-slate-500">{label}</span>
+      <span className="text-xs uppercase text-muted">{label}</span>
       <strong className="block text-lg">{money(value)}</strong>
     </div>
   );
