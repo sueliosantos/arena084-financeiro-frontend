@@ -73,15 +73,15 @@ export default function Dashboard({ ano, setAno }) {
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#263a33" />
-              <XAxis dataKey="nome" stroke="#91a39b" />
-              <YAxis tickFormatter={(value) => `R$ ${value}`} width={80} stroke="#91a39b" />
-              <Tooltip formatter={(value) => money(value)} contentStyle={{ background: "#0d1b15", border: "1px solid #263a33", color: "#e5f0ea" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#28466f" />
+              <XAxis dataKey="nome" stroke="#a7bdd8" />
+              <YAxis tickFormatter={(value) => `R$ ${value}`} width={80} stroke="#a7bdd8" />
+              <Tooltip formatter={(value) => money(value)} contentStyle={{ background: "#172f53", border: "1px solid #28466f", color: "#eef6ff" }} />
               <Legend />
-              <Bar dataKey="receitas" name="Receitas" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="receitas" name="Receitas" fill="#60a5fa" radius={[4, 4, 0, 0]} />
               <Bar dataKey="despesas" name="Despesas" fill="#fb7185" radius={[4, 4, 0, 0]} />
               <Bar dataKey="pendente" name="Pendente" fill="#facc15" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="saldo" name="Saldo" fill="#2dd4bf" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="saldo" name="Saldo" fill="#22d3ee" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

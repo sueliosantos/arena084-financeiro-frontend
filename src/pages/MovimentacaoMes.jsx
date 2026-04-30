@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3 } from "lucide-react";
+import { CheckCircle2, Clock3, Pencil } from "lucide-react";
 import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
@@ -38,6 +38,44 @@ export default function MovimentacaoMes({ ano }) {
 
       await carregar();
       setSuccess(status === "PAGO" ? "Lançamento marcado como pago." : "Lançamento marcado como pendente.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const editarValor = async (item) => {
+    const valorAtual = String(item.valor ?? "").replace(".", ",");
+    const informado = window.prompt("Valor do lançamento", valorAtual);
+    if (informado === null) return;
+
+    const valor = Number(informado.replace(/\./g, "").replace(",", "."));
+    if (!Number.isFinite(valor) || valor < 0) {
+      setError("Informe um valor válido.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setUpdatingId(item.id);
+
+    try {
+      if (item.simulado) {
+        await api.lancamentos.materializarRecorrente({
+          recorrenteId: item.recorrenteId,
+          mes,
+          ano,
+          status: item.status,
+          observacao: item.observacao,
+          valor
+        });
+      } else {
+        await api.lancamentos.atualizar(item.id, { valor });
+      }
+
+      await carregar();
+      setSuccess("Valor atualizado.");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -108,16 +146,27 @@ export default function MovimentacaoMes({ ano }) {
                 <td className="table-cell text-muted">{item.observacao || "-"}</td>
                 <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
                 <td className="table-cell text-right">
-                  <button
-                    className={item.status === "PAGO" ? "btn-secondary h-8 px-2" : "btn h-8 px-2"}
-                    type="button"
-                    onClick={() => toggleStatus(item)}
-                    disabled={updatingId === item.id}
-                    title={item.status === "PAGO" ? "Marcar como pendente" : "Marcar como pago"}
-                  >
-                    {item.status === "PAGO" ? <Clock3 size={14} /> : <CheckCircle2 size={14} />}
-                    {item.status === "PAGO" ? "Pendente" : "Pagar"}
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className="btn-secondary h-8 w-8 p-0"
+                      type="button"
+                      onClick={() => editarValor(item)}
+                      disabled={updatingId === item.id}
+                      title="Editar valor"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      className={item.status === "PAGO" ? "btn-secondary h-8 px-2" : "btn h-8 px-2"}
+                      type="button"
+                      onClick={() => toggleStatus(item)}
+                      disabled={updatingId === item.id}
+                      title={item.status === "PAGO" ? "Marcar como pendente" : "Marcar como pago"}
+                    >
+                      {item.status === "PAGO" ? <Clock3 size={14} /> : <CheckCircle2 size={14} />}
+                      {item.status === "PAGO" ? "Pendente" : "Pagar"}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

@@ -3,13 +3,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#e5f0ea",
-        muted: "#91a39b",
-        line: "#263a33",
-        canvas: "#07110d",
-        panel: "#0d1b15",
-        brand: "#22c55e",
-        accent: "#2dd4bf",
+        ink: "#eef6ff",
+        muted: "#a7bdd8",
+        line: "#28466f",
+        canvas: "#122646",
+        panel: "#172f53",
+        brand: "#60a5fa",
+        accent: "#22d3ee",
         danger: "#fb7185",
         warn: "#facc15"
       }
