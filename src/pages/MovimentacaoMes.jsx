@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Clock3 } from "lucide-react";
 import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
@@ -9,14 +10,40 @@ export default function MovimentacaoMes({ ano }) {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [updatingId, setUpdatingId] = useState(null);
+
+  const carregar = async () => {
+    setError("");
+    setItems(await api.lancamentos.listar(mes, ano));
+  };
 
   useEffect(() => {
-    setError("");
-    api
-      .lancamentos.listar(mes, ano)
-      .then(setItems)
-      .catch((err) => setError(err.message));
+    setSuccess("");
+    carregar().catch((err) => setError(err.message));
   }, [mes, ano]);
+
+  const toggleStatus = async (item) => {
+    const status = item.status === "PAGO" ? "PENDENTE" : "PAGO";
+    setError("");
+    setSuccess("");
+    setUpdatingId(item.id);
+
+    try {
+      if (item.simulado) {
+        await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status, observacao: item.observacao });
+      } else {
+        await api.lancamentos.atualizar(item.id, { status });
+      }
+
+      await carregar();
+      setSuccess(status === "PAGO" ? "Lancamento marcado como pago." : "Lancamento marcado como pendente.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const totals = useMemo(
     () =>
@@ -47,7 +74,7 @@ export default function MovimentacaoMes({ ano }) {
           </select>
         }
       />
-      <Notice error={error} />
+      <Notice error={error} success={success} />
 
       <div className="grid gap-3 md:grid-cols-4">
         <Metric label="Receitas confirmadas" value={totals.receitas} tone="text-brand" />
@@ -67,6 +94,7 @@ export default function MovimentacaoMes({ ano }) {
               <th className="table-cell">Status</th>
               <th className="table-cell">Obs</th>
               <th className="table-cell text-right">Valor</th>
+              <th className="table-cell text-right">Acao</th>
             </tr>
           </thead>
           <tbody>
@@ -79,6 +107,18 @@ export default function MovimentacaoMes({ ano }) {
                 <td className="table-cell">{item.status}</td>
                 <td className="table-cell text-muted">{item.observacao || "-"}</td>
                 <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
+                <td className="table-cell text-right">
+                  <button
+                    className={item.status === "PAGO" ? "btn-secondary h-8 px-2" : "btn h-8 px-2"}
+                    type="button"
+                    onClick={() => toggleStatus(item)}
+                    disabled={updatingId === item.id}
+                    title={item.status === "PAGO" ? "Marcar como pendente" : "Marcar como pago"}
+                  >
+                    {item.status === "PAGO" ? <Clock3 size={14} /> : <CheckCircle2 size={14} />}
+                    {item.status === "PAGO" ? "Pendente" : "Pagar"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
