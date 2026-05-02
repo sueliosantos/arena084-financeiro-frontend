@@ -127,6 +127,11 @@ export default function MovimentacaoMes({ ano }) {
     [items]
   );
 
+  const sortedItems = useMemo(
+    () => [...items].sort((a, b) => (a.status === "PAGO" ? 0 : 1) - (b.status === "PAGO" ? 0 : 1)),
+    [items]
+  );
+
   return (
     <section>
       <PageTitle
@@ -166,13 +171,17 @@ export default function MovimentacaoMes({ ano }) {
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {sortedItems.map((item) => (
               <tr key={item.id}>
                 <td className="table-cell">{dateInput(item.data)}</td>
                 <td className="table-cell">{item.descricao}</td>
                 <td className="table-cell">{item.categoria?.nome}</td>
                 <td className="table-cell">{item.origem}</td>
-                <td className="table-cell">{item.status}</td>
+                <td className="table-cell text-center">
+                  <span title={item.status === "PAGO" ? "Pago" : "Pendente"} aria-label={item.status === "PAGO" ? "Pago" : "Pendente"}>
+                    {item.status === "PAGO" ? "✅" : "⚠️"}
+                  </span>
+                </td>
                 <td className="table-cell">{item.contabiliza === false ? "Não" : "Sim"}</td>
                 <td className="table-cell text-muted">{item.observacao || "-"}</td>
                 <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
