@@ -18,6 +18,8 @@ const monthNames = [
   "Dezembro",
 ];
 
+const SUPERMERCADO_CATEGORIA_ID = 3;
+
 export default function Relatorio() {
   const today = new Date();
   const [mes, setMes] = useState(today.getMonth() + 1);
@@ -46,10 +48,13 @@ export default function Relatorio() {
       .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
   }, [lancamentos, categoriaId]);
 
-  // 🔥 AQUI ESTÁ O AJUSTE CORRETO
   const { receitas, despesas, total } = useMemo(() => {
+    const supermercadoSelecionado =
+      String(categoriaId) === String(SUPERMERCADO_CATEGORIA_ID);
     const validos = filtered.filter(
-      (item) => item.status !== "PENDENTE" && item.contabiliza !== false,
+      (item) =>
+        item.status !== "PENDENTE" &&
+        (item.contabiliza !== false || supermercadoSelecionado),
     );
 
     const receitas = validos
@@ -65,7 +70,7 @@ export default function Relatorio() {
       despesas,
       total: receitas - despesas,
     };
-  }, [filtered]);
+  }, [filtered, categoriaId]);
 
   return (
     <section>
@@ -145,7 +150,6 @@ export default function Relatorio() {
               </tr>
             ))}
 
-            {/* 🔥 RESUMO FINAL */}
             <tr className='bg-black/20'>
               <td className='table-cell font-semibold' colSpan={6}>
                 Receitas
