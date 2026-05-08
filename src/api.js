@@ -38,7 +38,12 @@ export const api = {
     remover: (id) => request(`/api/categorias/${id}`, { method: "DELETE" })
   },
   lancamentos: {
-    listar: (mes, ano) => request(`/api/lancamentos?mes=${mes}&ano=${ano}`),
+    listar: (mes, ano, filtros = {}) => {
+      const params = new URLSearchParams({ mes, ano });
+      if (filtros.tipo) params.set("tipo", filtros.tipo);
+      if (filtros.status) params.set("status", filtros.status);
+      return request(`/api/lancamentos?${params.toString()}`);
+    },
     criar: (data) => request("/api/lancamentos", { method: "POST", body: JSON.stringify(data) }),
     materializarRecorrente: (data) => request("/api/lancamentos/recorrente-mensal", { method: "POST", body: JSON.stringify(data) }),
     atualizar: (id, data) => request(`/api/lancamentos/${id}`, { method: "PUT", body: JSON.stringify(data) }),

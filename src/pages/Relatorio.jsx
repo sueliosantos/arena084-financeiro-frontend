@@ -25,28 +25,35 @@ export default function Relatorio() {
   const [mes, setMes] = useState(today.getMonth() + 1);
   const [ano, setAno] = useState(today.getFullYear());
   const [categoriaId, setCategoriaId] = useState("");
+  const [tipo, setTipo] = useState("");
+  const [status, setStatus] = useState("");
   const [categorias, setCategorias] = useState([]);
   const [lancamentos, setLancamentos] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     setError("");
-    Promise.all([api.categorias.listar(), api.lancamentos.listar(mes, ano)])
+    Promise.all([
+      api.categorias.listar(),
+      api.lancamentos.listar(mes, ano, { tipo, status }),
+    ])
       .then(([cats, itens]) => {
         setCategorias(cats);
         setLancamentos(itens);
       })
       .catch((err) => setError(err.message));
-  }, [mes, ano]);
+  }, [mes, ano, tipo, status]);
 
   const filtered = useMemo(() => {
     return lancamentos
       .filter(
         (item) =>
-          !categoriaId || String(item.categoriaId) === String(categoriaId),
+          (!categoriaId || String(item.categoriaId) === String(categoriaId)) &&
+          (!tipo || item.tipo === tipo) &&
+          (!status || item.status === status),
       )
       .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-  }, [lancamentos, categoriaId]);
+  }, [lancamentos, categoriaId, tipo, status]);
 
   const { receitas, despesas, total } = useMemo(() => {
     const supermercadoSelecionado =
@@ -77,7 +84,7 @@ export default function Relatorio() {
       <PageTitle
         title='Relatório'
         actions={
-          <div className='grid gap-2 sm:grid-cols-[180px_120px_220px]'>
+          <div className='grid gap-2 sm:grid-cols-[160px_110px_180px_180px_220px]'>
             <select
               className='field'
               value={mes}
@@ -96,6 +103,26 @@ export default function Relatorio() {
               value={ano}
               onChange={(e) => setAno(Number(e.target.value))}
             />
+
+            <select
+              className='field'
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+            >
+              <option value=''>Receitas e despesas</option>
+              <option value='DESPESA'>Despesas</option>
+              <option value='RECEITA'>Receitas</option>
+            </select>
+
+            <select
+              className='field'
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value=''>Pagos e pendentes</option>
+              <option value='PAGO'>Pagos</option>
+              <option value='PENDENTE'>Pendentes</option>
+            </select>
 
             <select
               className='field'
