@@ -55,6 +55,13 @@ export const api = {
     atualizar: (id, data) => request(`/api/recorrentes/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     remover: (id) => request(`/api/recorrentes/${id}`, { method: "DELETE" })
   },
+  listaCompras: {
+    listar: () => request("/api/lista-compras"),
+    criar: (data) => request("/api/lista-compras", { method: "POST", body: JSON.stringify(data) }),
+    atualizar: (id, data) => request(`/api/lista-compras/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remover: (id) => request(`/api/lista-compras/${id}`, { method: "DELETE" }),
+    realizar: () => request("/api/lista-compras/realizado", { method: "DELETE" })
+  },
   resumo: (ano, mes) => request(`/api/resumo?ano=${ano}${mes ? `&mes=${mes}` : ""}`)
 };
 

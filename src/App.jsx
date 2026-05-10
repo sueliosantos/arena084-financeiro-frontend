@@ -1,8 +1,9 @@
-import { BarChart3, CalendarDays, ClipboardList, FolderTree, LogOut, Repeat, WalletCards } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, FolderTree, LogOut, Repeat, ShoppingCart, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import Categorias from "./pages/Categorias.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Lancamentos from "./pages/Lancamentos.jsx";
+import ListaCompras from "./pages/ListaCompras.jsx";
 import Login from "./pages/Login.jsx";
 import MovimentacaoMes from "./pages/MovimentacaoMes.jsx";
 import Recorrentes from "./pages/Recorrentes.jsx";
@@ -14,6 +15,7 @@ const tabs = [
   { id: "lancamentos", label: "Lançamentos", icon: WalletCards, component: Lancamentos },
   { id: "relatorio", label: "Relatório", icon: ClipboardList, component: Relatorio },
   { id: "recorrentes", label: "Recorrentes", icon: Repeat, component: Recorrentes },
+  { id: "lista-compras", label: "Compras", icon: ShoppingCart, component: ListaCompras },
   { id: "categorias", label: "Categoria", icon: FolderTree, component: Categorias }
 ];
 
