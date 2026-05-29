@@ -22,7 +22,8 @@ const SUPERMERCADO_CATEGORIA_ID = 3;
 
 export default function Relatorio() {
   const today = new Date();
-  const [mes, setMes] = useState(today.getMonth() + 1);
+  const [mesInicio, setMesInicio] = useState(today.getMonth() + 1);
+  const [mesFim, setMesFim] = useState(today.getMonth() + 1);
   const [ano, setAno] = useState(today.getFullYear());
   const [categoriaId, setCategoriaId] = useState("");
   const [tipo, setTipo] = useState("");
@@ -33,16 +34,27 @@ export default function Relatorio() {
 
   useEffect(() => {
     setError("");
+    const inicio = Number(mesInicio);
+    const fim = Number(mesFim);
+
+    if (inicio > fim) {
+      setLancamentos([]);
+      setError("O mês inicial precisa ser menor ou igual ao mês final.");
+      return;
+    }
+
+    const meses = Array.from({ length: fim - inicio + 1 }, (_, index) => inicio + index);
+
     Promise.all([
       api.categorias.listar(),
-      api.lancamentos.listar(mes, ano, { tipo, status }),
+      Promise.all(meses.map((mes) => api.lancamentos.listar(mes, ano, { tipo, status }))),
     ])
-      .then(([cats, itens]) => {
+      .then(([cats, itensPorMes]) => {
         setCategorias(cats);
-        setLancamentos(itens);
+        setLancamentos(itensPorMes.flat());
       })
       .catch((err) => setError(err.message));
-  }, [mes, ano, tipo, status]);
+  }, [mesInicio, mesFim, ano, tipo, status]);
 
   const filtered = useMemo(() => {
     return lancamentos
@@ -84,15 +96,27 @@ export default function Relatorio() {
       <PageTitle
         title='Relatório'
         actions={
-          <div className='grid gap-2 sm:grid-cols-[160px_110px_180px_180px_220px]'>
+          <div className='grid gap-2 sm:grid-cols-[150px_150px_110px_180px_180px_220px]'>
             <select
               className='field'
-              value={mes}
-              onChange={(e) => setMes(Number(e.target.value))}
+              value={mesInicio}
+              onChange={(e) => setMesInicio(Number(e.target.value))}
             >
               {monthNames.map((name, index) => (
                 <option key={name} value={index + 1}>
-                  {name}
+                  De {name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className='field'
+              value={mesFim}
+              onChange={(e) => setMesFim(Number(e.target.value))}
+            >
+              {monthNames.map((name, index) => (
+                <option key={name} value={index + 1}>
+                  Até {name}
                 </option>
               ))}
             </select>
