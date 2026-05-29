@@ -6,10 +6,11 @@ import PageTitle from "../components/PageTitle.jsx";
 
 const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-const emptyEditForm = { valor: "", data: "", status: "PENDENTE", observacao: "", contabiliza: true };
+const emptyEditForm = { valor: "", data: "", status: "PENDENTE", categoriaId: "", observacao: "", contabiliza: true };
 
 export default function MovimentacaoMes({ ano }) {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
+  const [categorias, setCategorias] = useState([]);
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -19,7 +20,9 @@ export default function MovimentacaoMes({ ano }) {
 
   const carregar = async () => {
     setError("");
-    setItems(await api.lancamentos.listar(mes, ano));
+    const [cats, lancamentos] = await Promise.all([api.categorias.listar(), api.lancamentos.listar(mes, ano)]);
+    setCategorias(cats);
+    setItems(lancamentos);
   };
 
   useEffect(() => {
@@ -57,6 +60,7 @@ export default function MovimentacaoMes({ ano }) {
       valor: String(item.valor ?? ""),
       data: dateInput(item.data),
       status: item.status,
+      categoriaId: item.categoriaId ? String(item.categoriaId) : "",
       observacao: item.observacao || "",
       contabiliza: item.contabiliza !== false
     });
@@ -72,6 +76,10 @@ export default function MovimentacaoMes({ ano }) {
     if (!editingItem) return;
 
     const valor = Number(String(editForm.valor).replace(/\./g, "").replace(",", "."));
+    if (!editForm.categoriaId) {
+      setError("Escolha uma categoria para o lancamento.");
+      return;
+    }
     if (!Number.isFinite(valor) || valor < 0) {
       setError("Informe um valor válido.");
       return;
@@ -86,6 +94,7 @@ export default function MovimentacaoMes({ ano }) {
         valor,
         data: editForm.data,
         status: editForm.status,
+        categoriaId: Number(editForm.categoriaId),
         observacao: editForm.observacao,
         contabiliza: editForm.contabiliza
       };
@@ -130,6 +139,11 @@ export default function MovimentacaoMes({ ano }) {
   const sortedItems = useMemo(
     () => [...items].sort((a, b) => (a.status === "PAGO" ? 0 : 1) - (b.status === "PAGO" ? 0 : 1)),
     [items]
+  );
+
+  const editCategorias = useMemo(
+    () => categorias.filter((cat) => !editingItem || cat.tipo === editingItem.tipo),
+    [categorias, editingItem]
   );
 
   return (
@@ -243,6 +257,18 @@ export default function MovimentacaoMes({ ano }) {
               <select className="field" value={editForm.status} onChange={(event) => setEditForm({ ...editForm, status: event.target.value })}>
                 <option value="PENDENTE">Pendente</option>
                 <option value="PAGO">Pago</option>
+              </select>
+            </label>
+
+            <label className="space-y-1 text-xs text-muted">
+              Categoria
+              <select className="field" value={editForm.categoriaId} onChange={(event) => setEditForm({ ...editForm, categoriaId: event.target.value })}>
+                <option value="">Selecione uma categoria</option>
+                {editCategorias.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.nome}
+                  </option>
+                ))}
               </select>
             </label>
 
