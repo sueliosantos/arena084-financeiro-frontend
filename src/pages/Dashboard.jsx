@@ -8,7 +8,6 @@ const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set
 
 export default function Dashboard({ ano, setAno }) {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
-  const [data, setData] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -20,26 +19,23 @@ export default function Dashboard({ ano, setAno }) {
       .resumo(ano, mes)
       .then((resumo) => {
         const meses = resumo.meses.map((item) => ({ ...item, nome: monthNames[item.mes - 1] }));
-        setData(meses);
-        setSelectedMonth(meses[meses.length - 1] || null);
+        setSelectedMonth(meses.find((item) => Number(item.mes) === Number(mes)) || null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [ano, mes]);
 
   const totals = useMemo(
-    () =>
-      data.reduce(
-        (acc, item) => ({
-          receitas: acc.receitas + item.receitas,
-          despesas: acc.despesas + item.despesas,
-          pendente: acc.pendente + item.pendente,
-          saldo: acc.saldo + item.saldo
-        }),
-        { receitas: 0, despesas: 0, pendente: 0, saldo: 0 }
-      ),
-    [data]
+    () => ({
+      receitas: selectedMonth?.receitas || 0,
+      despesas: selectedMonth?.despesas || 0,
+      pendente: selectedMonth?.pendente || 0,
+      saldo: selectedMonth?.saldo || 0
+    }),
+    [selectedMonth]
   );
+
+  const chartData = useMemo(() => (selectedMonth ? [selectedMonth] : []), [selectedMonth]);
 
   return (
     <section>
@@ -72,7 +68,7 @@ export default function Dashboard({ ano, setAno }) {
           <div className="flex h-full items-center justify-center text-sm text-slate-500">Carregando...</div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#28466f" />
               <XAxis dataKey="nome" stroke="#a7bdd8" />
               <YAxis tickFormatter={(value) => `R$ ${value}`} width={80} stroke="#a7bdd8" />

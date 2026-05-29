@@ -12,7 +12,7 @@ const initialForm = {
   descricao: "",
   observacao: "",
   data: dateInput(new Date()),
-  status: "PENDENTE",
+  status: "PAGO",
   categoriaId: "",
   contabiliza: true
 };
@@ -59,6 +59,10 @@ export default function Lancamentos() {
     event.preventDefault();
     setError("");
     setSuccess("");
+    if (!form.categoriaId) {
+      setError("Escolha uma categoria antes de adicionar o lançamento.");
+      return;
+    }
     try {
       await api.lancamentos.criar({ ...form, categoriaId: Number(form.categoriaId), valor: Number(form.valor) });
       setForm(initialForm);

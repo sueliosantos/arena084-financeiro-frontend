@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, dateInput, money } from "../api.js";
+import { api, dateBR, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
@@ -159,7 +159,7 @@ export default function Relatorio() {
           <tbody>
             {filtered.map((item) => (
               <tr key={item.id}>
-                <td className='table-cell'>{dateInput(item.data)}</td>
+                <td className='table-cell'>{dateBR(item.data)}</td>
                 <td className='table-cell'>{item.descricao}</td>
                 <td className='table-cell'>{item.categoria?.nome}</td>
                 <td className='table-cell'>{item.tipo}</td>

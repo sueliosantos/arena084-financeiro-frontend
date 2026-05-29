@@ -69,3 +69,9 @@ export const money = (value) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0));
 
 export const dateInput = (value) => new Date(value).toISOString().slice(0, 10);
+
+export const dateBR = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(date);
+};
