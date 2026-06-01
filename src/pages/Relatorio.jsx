@@ -20,6 +20,16 @@ const monthNames = [
 
 const SUPERMERCADO_CATEGORIA_ID = 3;
 
+function dentroDoIntervalo(item, mesInicio, mesFim, ano) {
+  const date = new Date(item.data);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const itemAno = date.getUTCFullYear();
+  const itemMes = date.getUTCMonth() + 1;
+
+  return itemAno === Number(ano) && itemMes >= Number(mesInicio) && itemMes <= Number(mesFim);
+}
+
 export default function Relatorio() {
   const today = new Date();
   const [mesInicio, setMesInicio] = useState(today.getMonth() + 1);
@@ -33,6 +43,7 @@ export default function Relatorio() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let ativo = true;
     setError("");
     const inicio = Number(mesInicio);
     const fim = Number(mesFim);
@@ -50,22 +61,30 @@ export default function Relatorio() {
       Promise.all(meses.map((mes) => api.lancamentos.listar(mes, ano, { tipo, status }))),
     ])
       .then(([cats, itensPorMes]) => {
+        if (!ativo) return;
         setCategorias(cats);
         setLancamentos(itensPorMes.flat());
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => {
+        if (ativo) setError(err.message);
+      });
+
+    return () => {
+      ativo = false;
+    };
   }, [mesInicio, mesFim, ano, tipo, status]);
 
   const filtered = useMemo(() => {
     return lancamentos
       .filter(
         (item) =>
+          dentroDoIntervalo(item, mesInicio, mesFim, ano) &&
           (!categoriaId || String(item.categoriaId) === String(categoriaId)) &&
           (!tipo || item.tipo === tipo) &&
           (!status || item.status === status),
       )
       .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-  }, [lancamentos, categoriaId, tipo, status]);
+  }, [lancamentos, mesInicio, mesFim, ano, categoriaId, tipo, status]);
 
   const { receitas, despesas, total } = useMemo(() => {
     const supermercadoSelecionado =
