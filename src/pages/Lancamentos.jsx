@@ -55,6 +55,20 @@ export default function Lancamentos() {
     [lancamentos]
   );
 
+  const lancamentosOrdenados = useMemo(
+    () =>
+      [...lancamentos].sort((a, b) => {
+        const porData = new Date(b.data).getTime() - new Date(a.data).getTime();
+        if (porData !== 0) return porData;
+        const idA = Number(a.id);
+        const idB = Number(b.id);
+        if (Number.isFinite(idA) && Number.isFinite(idB)) return idB - idA;
+        if (Number.isFinite(idA) !== Number.isFinite(idB)) return Number.isFinite(idB) ? 1 : -1;
+        return 0;
+      }),
+    [lancamentos]
+  );
+
   const submit = async (event) => {
     event.preventDefault();
     setError("");
@@ -121,8 +135,17 @@ export default function Lancamentos() {
 
   const remover = async (item) => {
     if (item.simulado) return;
-    await api.lancamentos.remover(item.id);
-    await carregar();
+    if (!window.confirm(`Excluir o lanÃ§amento "${item.descricao}"?`)) return;
+
+    setError("");
+    setSuccess("");
+    try {
+      await api.lancamentos.remover(item.id);
+      await carregar();
+      setSuccess("LanÃ§amento excluÃ­do.");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -206,11 +229,11 @@ export default function Lancamentos() {
                   <th className="table-cell">Status</th>
                   <th className="table-cell">Contabiliza</th>
                   <th className="table-cell text-right">Valor</th>
-                  <th className="table-cell w-32"></th>
+                  <th className="table-cell text-right">AÃ§Ãµes</th>
                 </tr>
               </thead>
               <tbody>
-                {lancamentos.map((item) => (
+                {lancamentosOrdenados.map((item) => (
                   <tr key={item.id}>
                     <td className="table-cell">{dateInput(item.data)}</td>
                     <td className="table-cell">{item.descricao}</td>
@@ -233,8 +256,9 @@ export default function Lancamentos() {
                         <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editarObservacao(item)} title="Observação">
                           <MessageSquare size={14} />
                         </button>
-                        <button className="btn-danger h-8 w-8 p-0" type="button" disabled={item.simulado} onClick={() => remover(item)} title="Remover">
+                        <button className="btn-danger h-8 px-2" type="button" disabled={item.simulado} onClick={() => remover(item)} title={item.simulado ? "LanÃ§amento recorrente ainda nÃ£o materializado" : "Excluir lanÃ§amento"}>
                           <Trash2 size={14} />
+                          Excluir
                         </button>
                       </div>
                     </td>
