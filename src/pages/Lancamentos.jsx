@@ -207,26 +207,26 @@ export default function Lancamentos() {
             <Summary label="Despesas" value={totals.despesas} />
             <Summary label="Saldo" value={totals.saldo} />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1040px] border-collapse">
+          <div>
+            <table className="w-full table-fixed border-collapse">
               <thead className="bg-black/20">
                 <tr>
-                  <th className="table-cell">Data</th>
+                  <th className="table-cell w-24">Data</th>
                   <th className="table-cell">Descrição</th>
-                  <th className="table-cell">Obs</th>
+                  <th className="table-cell w-20">Obs</th>
                   <th className="table-cell">Categoria</th>
-                  <th className="table-cell">Status</th>
-                  <th className="table-cell text-right">Valor</th>
-                  <th className="table-cell text-right">A&ccedil;&otilde;es</th>
+                  <th className="table-cell w-24">Status</th>
+                  <th className="table-cell w-28 text-right">Valor</th>
+                  <th className="table-cell w-32 text-right">A&ccedil;&otilde;es</th>
                 </tr>
               </thead>
               <tbody>
                 {lancamentosOrdenados.map((item) => (
                   <tr key={item.id}>
-                    <td className="table-cell">{dateInput(item.data)}</td>
-                    <td className="table-cell">{item.descricao}</td>
-                    <td className="table-cell text-muted">{item.observacao || "-"}</td>
-                    <td className="table-cell">{item.categoria?.nome}</td>
+                    <td className="table-cell whitespace-nowrap">{formatarData(item.data)}</td>
+                    <td className="table-cell truncate" title={item.descricao}>{item.descricao}</td>
+                    <td className="table-cell truncate text-muted" title={item.observacao || ""}>{item.observacao || "-"}</td>
+                    <td className="table-cell truncate" title={item.categoria?.nome}>{item.categoria?.nome}</td>
                     <td className="table-cell">{item.status}</td>
                     <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
                     <td className="table-cell">
@@ -237,9 +237,8 @@ export default function Lancamentos() {
                         <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editarObservacao(item)} title="Observação">
                           <MessageSquare size={14} />
                         </button>
-                        <button className="btn-danger h-8 px-2" type="button" disabled={item.simulado} onClick={() => remover(item)} title={item.simulado ? "LanÃ§amento recorrente ainda nÃ£o materializado" : "Excluir lanÃ§amento"}>
+                        <button className="btn-danger h-8 w-8 p-0" type="button" disabled={item.simulado} onClick={() => remover(item)} title={item.simulado ? "LanÃ§amento recorrente ainda nÃ£o materializado" : "Excluir lanÃ§amento"}>
                           <Trash2 size={14} />
-                          Excluir
                         </button>
                       </div>
                     </td>
@@ -261,4 +260,9 @@ function Summary({ label, value }) {
       <strong className="block text-lg">{money(value)}</strong>
     </div>
   );
+}
+
+function formatarData(data) {
+  const [ano, mes, dia] = dateInput(data).split("-");
+  return `${dia}/${mes}/${ano}`;
 }
