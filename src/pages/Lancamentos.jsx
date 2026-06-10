@@ -123,16 +123,6 @@ export default function Lancamentos() {
     await carregar();
   };
 
-  const toggleContabiliza = async (item) => {
-    const contabiliza = item.contabiliza === false;
-    if (item.simulado) {
-      await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status: item.status, observacao: item.observacao, contabiliza });
-    } else {
-      await api.lancamentos.atualizar(item.id, { contabiliza });
-    }
-    await carregar();
-  };
-
   const remover = async (item) => {
     if (item.simulado) return;
     if (!window.confirm(`Excluir o lanÃ§amento "${item.descricao}"?`)) return;
@@ -225,11 +215,9 @@ export default function Lancamentos() {
                   <th className="table-cell">Descrição</th>
                   <th className="table-cell">Obs</th>
                   <th className="table-cell">Categoria</th>
-                  <th className="table-cell">Origem</th>
                   <th className="table-cell">Status</th>
-                  <th className="table-cell">Contabiliza</th>
                   <th className="table-cell text-right">Valor</th>
-                  <th className="table-cell text-right">AÃ§Ãµes</th>
+                  <th className="table-cell text-right">A&ccedil;&otilde;es</th>
                 </tr>
               </thead>
               <tbody>
@@ -239,14 +227,7 @@ export default function Lancamentos() {
                     <td className="table-cell">{item.descricao}</td>
                     <td className="table-cell text-muted">{item.observacao || "-"}</td>
                     <td className="table-cell">{item.categoria?.nome}</td>
-                    <td className="table-cell">{item.origem}</td>
                     <td className="table-cell">{item.status}</td>
-                    <td className="table-cell">
-                      <label className="inline-flex items-center gap-2">
-                        <input type="checkbox" checked={item.contabiliza !== false} onChange={() => toggleContabiliza(item)} />
-                        {item.contabiliza === false ? "Não" : "Sim"}
-                      </label>
-                    </td>
                     <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
                     <td className="table-cell">
                       <div className="flex justify-end gap-1">
