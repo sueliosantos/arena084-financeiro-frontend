@@ -187,7 +187,7 @@ export default function MovimentacaoMes({ ano }) {
           <tbody>
             {sortedItems.map((item) => (
               <tr key={item.id}>
-                <td className="table-cell">{dateInput(item.data)}</td>
+                <td className="table-cell">{formatarData(item.data)}</td>
                 <td className="table-cell">{item.descricao}</td>
                 <td className="table-cell">{item.categoria?.nome}</td>
                 <td className="table-cell">{item.origem}</td>
@@ -313,4 +313,9 @@ function Metric({ label, value, tone }) {
       <strong className={`mt-1 block text-xl ${tone}`}>{money(value)}</strong>
     </div>
   );
+}
+
+function formatarData(data) {
+  const [ano, mes, dia] = dateInput(data).split("-");
+  return `${dia}/${mes}/${ano}`;
 }
