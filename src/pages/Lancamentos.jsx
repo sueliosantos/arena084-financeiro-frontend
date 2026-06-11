@@ -1,4 +1,4 @@
-import { Check, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
@@ -24,6 +24,7 @@ export default function Lancamentos() {
   const [categorias, setCategorias] = useState([]);
   const [lancamentos, setLancamentos] = useState([]);
   const [form, setForm] = useState(initialForm);
+  const [editingItem, setEditingItem] = useState(null);
   const [mensagem, setMensagem] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -74,14 +75,22 @@ export default function Lancamentos() {
     setError("");
     setSuccess("");
     if (!form.categoriaId) {
-      setError("Escolha uma categoria antes de adicionar o lançamento.");
+      setError("Escolha uma categoria antes de salvar o lançamento.");
       return;
     }
     try {
-      await api.lancamentos.criar({ ...form, categoriaId: Number(form.categoriaId), valor: Number(form.valor) });
+      const payload = { ...form, categoriaId: Number(form.categoriaId), valor: Number(form.valor) };
+      if (editingItem?.simulado) {
+        await api.lancamentos.materializarRecorrente({ recorrenteId: editingItem.recorrenteId, mes, ano, ...payload });
+      } else if (editingItem) {
+        await api.lancamentos.atualizar(editingItem.id, payload);
+      } else {
+        await api.lancamentos.criar(payload);
+      }
       setForm(initialForm);
+      setEditingItem(null);
       await carregar();
-      setSuccess("Lançamento cadastrado.");
+      setSuccess(editingItem ? "Lançamento atualizado." : "Lançamento cadastrado.");
     } catch (err) {
       setError(err.message);
     }
@@ -111,16 +120,25 @@ export default function Lancamentos() {
     await carregar();
   };
 
-  const editarObservacao = async (item) => {
-    const observacao = window.prompt("Observação do lançamento", item.observacao || "");
-    if (observacao === null) return;
+  const editar = (item) => {
+    setError("");
+    setSuccess("");
+    setEditingItem(item);
+    setForm({
+      tipo: item.tipo,
+      valor: String(item.valor ?? ""),
+      descricao: item.descricao || "",
+      observacao: item.observacao || "",
+      data: dateInput(item.data),
+      status: item.status,
+      categoriaId: item.categoriaId ? String(item.categoriaId) : "",
+      contabiliza: item.contabiliza !== false
+    });
+  };
 
-    if (item.simulado) {
-      await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, status: item.status, observacao, contabiliza: item.contabiliza !== false });
-    } else {
-      await api.lancamentos.atualizar(item.id, { observacao });
-    }
-    await carregar();
+  const cancelarEdicao = () => {
+    setEditingItem(null);
+    setForm(initialForm);
   };
 
   const remover = async (item) => {
@@ -160,6 +178,7 @@ export default function Lancamentos() {
       <div className="mt-4 grid gap-4 lg:grid-cols-[380px_1fr]">
         <div className="space-y-4">
           <form className="panel space-y-3" onSubmit={submit}>
+            <h2 className="font-semibold">{editingItem ? "Editar lançamento" : "Novo lançamento"}</h2>
             <div className="grid grid-cols-2 gap-2">
               <select className="field" value={form.tipo} onChange={(event) => setForm({ ...form, tipo: event.target.value, categoriaId: "" })}>
                 <option value="DESPESA">Despesa</option>
@@ -189,8 +208,14 @@ export default function Lancamentos() {
               Contabiliza nos totais e gráficos
             </label>
             <button className="btn w-full" type="submit">
-              <Plus size={16} /> Adicionar
+              {editingItem ? <Save size={16} /> : <Plus size={16} />}
+              {editingItem ? "Salvar" : "Adicionar"}
             </button>
+            {editingItem && (
+              <button className="btn-secondary w-full" type="button" onClick={cancelarEdicao}>
+                Cancelar edição
+              </button>
+            )}
           </form>
 
           <form className="panel space-y-3" onSubmit={submitWhatsApp}>
@@ -234,8 +259,8 @@ export default function Lancamentos() {
                         <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => toggleStatus(item)} title="Alternar status">
                           <Check size={14} />
                         </button>
-                        <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editarObservacao(item)} title="Editar observação" aria-label="Editar observação">
-                          <Pencil size={14} />
+                        <button className="btn-secondary h-8 px-2" type="button" onClick={() => editar(item)}>
+                          Editar
                         </button>
                         <button className="btn-danger h-8 w-8 p-0" type="button" disabled={item.simulado} onClick={() => remover(item)} title="Excluir" aria-label="Excluir">
                           <Trash2 size={14} />
