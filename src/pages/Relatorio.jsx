@@ -1,3 +1,4 @@
+import { Check, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api, dateBR, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
@@ -195,6 +196,7 @@ export default function Relatorio() {
               <th className='table-cell'>Tipo</th>
               <th className='table-cell'>Status</th>
               <th className='table-cell'>Obs</th>
+              <th className='table-cell w-20 text-center'>CONT.</th>
               <th className='table-cell text-right'>Valor</th>
             </tr>
           </thead>
@@ -210,6 +212,13 @@ export default function Relatorio() {
                 <td className='table-cell text-muted'>
                   {item.observacao || "-"}
                 </td>
+                <td className='table-cell text-center'>
+                  {item.contabiliza !== false ? (
+                    <Check className='mx-auto text-green-400' size={18} aria-label='Contabiliza' />
+                  ) : (
+                    <X className='mx-auto text-red-500' size={18} aria-label='Não contabiliza' />
+                  )}
+                </td>
                 <td
                   className={`table-cell text-right font-semibold ${
                     item.tipo === "RECEITA" ? "text-brand" : "text-danger"
@@ -221,7 +230,7 @@ export default function Relatorio() {
             ))}
 
             <tr className='bg-black/20'>
-              <td className='table-cell font-semibold' colSpan={6}>
+              <td className='table-cell font-semibold' colSpan={7}>
                 Receitas
               </td>
               <td className='table-cell text-right font-semibold text-brand'>
@@ -230,7 +239,7 @@ export default function Relatorio() {
             </tr>
 
             <tr className='bg-black/20'>
-              <td className='table-cell font-semibold' colSpan={6}>
+              <td className='table-cell font-semibold' colSpan={7}>
                 Despesas
               </td>
               <td className='table-cell text-right font-semibold text-danger'>
@@ -239,7 +248,7 @@ export default function Relatorio() {
             </tr>
 
             <tr className='bg-black/30'>
-              <td className='table-cell font-semibold' colSpan={6}>
+              <td className='table-cell font-semibold' colSpan={7}>
                 Total
               </td>
               <td

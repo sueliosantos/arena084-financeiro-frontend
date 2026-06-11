@@ -1,4 +1,4 @@
-import { Check, MessageSquare, Plus, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
@@ -125,14 +125,14 @@ export default function Lancamentos() {
 
   const remover = async (item) => {
     if (item.simulado) return;
-    if (!window.confirm(`Excluir o lanÃ§amento "${item.descricao}"?`)) return;
+    if (!window.confirm(`Excluir o lançamento "${item.descricao}"?`)) return;
 
     setError("");
     setSuccess("");
     try {
       await api.lancamentos.remover(item.id);
       await carregar();
-      setSuccess("LanÃ§amento excluÃ­do.");
+      setSuccess("Lançamento excluído.");
     } catch (err) {
       setError(err.message);
     }
@@ -234,10 +234,10 @@ export default function Lancamentos() {
                         <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => toggleStatus(item)} title="Alternar status">
                           <Check size={14} />
                         </button>
-                        <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editarObservacao(item)} title="Observação">
-                          <MessageSquare size={14} />
+                        <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editarObservacao(item)} title="Editar observação" aria-label="Editar observação">
+                          <Pencil size={14} />
                         </button>
-                        <button className="btn-danger h-8 w-8 p-0" type="button" disabled={item.simulado} onClick={() => remover(item)} title={item.simulado ? "LanÃ§amento recorrente ainda nÃ£o materializado" : "Excluir lanÃ§amento"}>
+                        <button className="btn-danger h-8 w-8 p-0" type="button" disabled={item.simulado} onClick={() => remover(item)} title="Excluir" aria-label="Excluir">
                           <Trash2 size={14} />
                         </button>
                       </div>
