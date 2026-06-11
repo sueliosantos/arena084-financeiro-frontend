@@ -1,4 +1,4 @@
-import { Check, Plus, Save, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api, dateInput, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
@@ -259,8 +259,8 @@ export default function Lancamentos() {
                         <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => toggleStatus(item)} title="Alternar status">
                           <Check size={14} />
                         </button>
-                        <button className="btn-secondary h-8 px-2" type="button" onClick={() => editar(item)}>
-                          Editar
+                        <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editar(item)} title="Editar lançamento" aria-label="Editar lançamento">
+                          <Pencil size={14} />
                         </button>
                         <button className="btn-danger h-8 w-8 p-0" type="button" disabled={item.simulado} onClick={() => remover(item)} title="Excluir" aria-label="Excluir">
                           <Trash2 size={14} />
