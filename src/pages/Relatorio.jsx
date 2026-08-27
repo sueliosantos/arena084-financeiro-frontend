@@ -1,5 +1,5 @@
-import { Check, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Check, ChevronDown, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, dateBR, money } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
@@ -36,12 +36,14 @@ export default function Relatorio() {
   const [mesInicio, setMesInicio] = useState(today.getMonth() + 1);
   const [mesFim, setMesFim] = useState(today.getMonth() + 1);
   const [ano, setAno] = useState(today.getFullYear());
-  const [categoriaId, setCategoriaId] = useState("");
+  const [categoriaIds, setCategoriaIds] = useState([]);
+  const [categoriaAberto, setCategoriaAberto] = useState(false);
   const [tipo, setTipo] = useState("");
   const [status, setStatus] = useState("");
   const [categorias, setCategorias] = useState([]);
   const [lancamentos, setLancamentos] = useState([]);
   const [error, setError] = useState("");
+  const categoriaRef = useRef(null);
 
   useEffect(() => {
     let ativo = true;
@@ -75,21 +77,55 @@ export default function Relatorio() {
     };
   }, [mesInicio, mesFim, ano, tipo, status]);
 
+  useEffect(() => {
+    const fecharClique = (event) => {
+      if (categoriaRef.current && !categoriaRef.current.contains(event.target)) {
+        setCategoriaAberto(false);
+      }
+    };
+
+    const fecharTecla = (event) => {
+      if (event.key === "Escape") setCategoriaAberto(false);
+    };
+
+    document.addEventListener("mousedown", fecharClique);
+    document.addEventListener("keydown", fecharTecla);
+    return () => {
+      document.removeEventListener("mousedown", fecharClique);
+      document.removeEventListener("keydown", fecharTecla);
+    };
+  }, []);
+
+  const toggleCategoria = (id) => {
+    const valor = String(id);
+    setCategoriaIds((atual) =>
+      atual.includes(valor) ? atual.filter((item) => item !== valor) : [...atual, valor],
+    );
+  };
+
+  const categoriaLabel = useMemo(() => {
+    if (!categoriaIds.length) return "Todas as categorias";
+    if (categoriaIds.length === 1) {
+      return categorias.find((cat) => String(cat.id) === categoriaIds[0])?.nome || "1 categoria";
+    }
+    return `${categoriaIds.length} categorias`;
+  }, [categoriaIds, categorias]);
+
   const filtered = useMemo(() => {
     return lancamentos
       .filter(
         (item) =>
           dentroDoIntervalo(item, mesInicio, mesFim, ano) &&
-          (!categoriaId || String(item.categoriaId) === String(categoriaId)) &&
+          (!categoriaIds.length || categoriaIds.includes(String(item.categoriaId))) &&
           (!tipo || item.tipo === tipo) &&
           (!status || item.status === status),
       )
       .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-  }, [lancamentos, mesInicio, mesFim, ano, categoriaId, tipo, status]);
+  }, [lancamentos, mesInicio, mesFim, ano, categoriaIds, tipo, status]);
 
   const { receitas, despesas, total } = useMemo(() => {
     const supermercadoSelecionado =
-      String(categoriaId) === String(SUPERMERCADO_CATEGORIA_ID);
+      categoriaIds.length === 1 && String(categoriaIds[0]) === String(SUPERMERCADO_CATEGORIA_ID);
     const validos = filtered.filter(
       (item) =>
         item.status !== "PENDENTE" &&
@@ -109,7 +145,7 @@ export default function Relatorio() {
       despesas,
       total: receitas - despesas,
     };
-  }, [filtered, categoriaId]);
+  }, [filtered, categoriaIds]);
 
   return (
     <section>
@@ -168,18 +204,48 @@ export default function Relatorio() {
               <option value='PENDENTE'>Pendentes</option>
             </select>
 
-            <select
-              className='field'
-              value={categoriaId}
-              onChange={(e) => setCategoriaId(e.target.value)}
-            >
-              <option value=''>Todas as categorias</option>
-              {categorias.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.nome}
-                </option>
-              ))}
-            </select>
+            <div className='relative' ref={categoriaRef}>
+              <button
+                type='button'
+                className='field flex items-center justify-between gap-2 text-left'
+                onClick={() => setCategoriaAberto((aberto) => !aberto)}
+                aria-expanded={categoriaAberto}
+                aria-haspopup='listbox'
+              >
+                <span className='truncate'>{categoriaLabel}</span>
+                <ChevronDown size={16} className='shrink-0 text-muted' />
+              </button>
+
+              {categoriaAberto && (
+                <div className='absolute right-0 z-20 mt-1 max-h-72 w-72 overflow-y-auto rounded-md border border-line bg-panel p-2 shadow-lg shadow-black/40'>
+                  <label className='flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-black/20'>
+                    <input
+                      type='checkbox'
+                      checked={!categoriaIds.length}
+                      onChange={() => setCategoriaIds([])}
+                    />
+                    Todas as categorias
+                  </label>
+
+                  {categorias.map((cat) => {
+                    const selecionada = categoriaIds.includes(String(cat.id));
+                    return (
+                      <label
+                        key={cat.id}
+                        className='flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-black/20'
+                      >
+                        <input
+                          type='checkbox'
+                          checked={selecionada}
+                          onChange={() => toggleCategoria(cat.id)}
+                        />
+                        <span className='truncate'>{cat.nome}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         }
       />
