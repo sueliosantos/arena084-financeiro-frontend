@@ -59,8 +59,10 @@ export default function Lancamentos() {
   const lancamentosOrdenados = useMemo(
     () =>
       [...lancamentos].sort((a, b) => {
-        const porData = new Date(b.data).getTime() - new Date(a.data).getTime();
+        const porData = timestamp(b.data) - timestamp(a.data);
         if (porData !== 0) return porData;
+        const porCriacao = timestamp(b.criadoEm) - timestamp(a.criadoEm);
+        if (porCriacao !== 0) return porCriacao;
         const idA = Number(a.id);
         const idB = Number(b.id);
         if (Number.isFinite(idA) && Number.isFinite(idB)) return idB - idA;
@@ -232,8 +234,17 @@ export default function Lancamentos() {
             <Summary label="Despesas" value={totals.despesas} />
             <Summary label="Saldo" value={totals.saldo} />
           </div>
-          <div>
-            <table className="w-full table-fixed border-collapse">
+          <div className="overflow-x-auto overscroll-x-contain">
+            <table className="min-w-[760px] w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-24" />
+                <col className="w-48" />
+                <col className="w-28" />
+                <col className="w-36" />
+                <col className="w-24" />
+                <col className="w-28" />
+                <col className="w-32" />
+              </colgroup>
               <thead className="bg-black/20">
                 <tr>
                   <th className="table-cell w-24">Data</th>
@@ -290,4 +301,10 @@ function Summary({ label, value }) {
 function formatarData(data) {
   const [ano, mes, dia] = dateInput(data).split("-");
   return `${dia}/${mes}/${ano}`;
+}
+
+function timestamp(value) {
+  if (!value) return 0;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? 0 : time;
 }
