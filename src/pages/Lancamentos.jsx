@@ -235,25 +235,23 @@ export default function Lancamentos() {
             <Summary label="Saldo" value={totals.saldo} />
           </div>
           <div className="overflow-x-auto overscroll-x-contain">
-            <table className="min-w-[760px] w-full table-fixed border-collapse">
+            <table className="min-w-[640px] w-full table-fixed border-collapse">
               <colgroup>
                 <col className="w-24" />
-                <col className="w-48" />
-                <col className="w-28" />
-                <col className="w-36" />
+                <col />
                 <col className="w-24" />
+                <col className="w-36" />
                 <col className="w-28" />
                 <col className="w-32" />
               </colgroup>
               <thead className="bg-black/20">
                 <tr>
-                  <th className="table-cell w-24">Data</th>
+                  <th className="table-cell">Data</th>
                   <th className="table-cell">Descrição</th>
-                  <th className="table-cell w-20">Obs</th>
+                  <th className="table-cell">Obs</th>
                   <th className="table-cell">Categoria</th>
-                  <th className="table-cell w-24">Status</th>
-                  <th className="table-cell w-28 text-right">Valor</th>
-                  <th className="table-cell w-32 text-right">A&ccedil;&otilde;es</th>
+                  <th className="table-cell text-right">Valor</th>
+                  <th className="table-cell text-right">A&ccedil;&otilde;es</th>
                 </tr>
               </thead>
               <tbody>
@@ -263,11 +261,17 @@ export default function Lancamentos() {
                     <td className="table-cell truncate" title={item.descricao}>{item.descricao}</td>
                     <td className="table-cell truncate text-muted" title={item.observacao || ""}>{item.observacao || "-"}</td>
                     <td className="table-cell truncate" title={item.categoria?.nome}>{item.categoria?.nome}</td>
-                    <td className="table-cell">{item.status}</td>
                     <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
                     <td className="table-cell">
                       <div className="flex justify-end gap-1">
-                        <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => toggleStatus(item)} title="Alternar status">
+                        <button
+                          className={`btn-secondary h-8 w-8 shrink-0 p-0 ${item.status === "PAGO" ? "!border-green-500 !bg-green-600/25 !text-green-400" : "opacity-60"}`}
+                          type="button"
+                          onClick={() => toggleStatus(item)}
+                          title={item.status === "PAGO" ? "Pago — marcar como pendente" : "Pendente — marcar como pago"}
+                          aria-label={item.status === "PAGO" ? "Pago, marcar como pendente" : "Pendente, marcar como pago"}
+                          aria-pressed={item.status === "PAGO"}
+                        >
                           <Check size={14} />
                         </button>
                         <button className="btn-secondary h-8 w-8 p-0" type="button" onClick={() => editar(item)} title="Editar lançamento" aria-label="Editar lançamento">
