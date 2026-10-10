@@ -1,6 +1,7 @@
 import { Check, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api, dateInput, money } from "../api.js";
+import LancamentoVoz from "../components/LancamentoVoz.jsx";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
@@ -181,6 +182,15 @@ export default function Lancamentos() {
         <div className="space-y-4">
           <form className="panel space-y-3" onSubmit={submit}>
             <h2 className="font-semibold">{editingItem ? "Editar lançamento" : "Novo lançamento"}</h2>
+            {!editingItem && (
+              <LancamentoVoz
+                categorias={categorias}
+                onSalvo={async () => {
+                  await carregar();
+                  setSuccess("Lançamento por voz cadastrado.");
+                }}
+              />
+            )}
             <div className="grid grid-cols-2 gap-2">
               <select className="field" value={form.tipo} onChange={(event) => setForm({ ...form, tipo: event.target.value, categoriaId: "" })}>
                 <option value="DESPESA">Despesa</option>

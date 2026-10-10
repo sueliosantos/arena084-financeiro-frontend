@@ -1,14 +1,14 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-async function request(path, options = {}) {
+async function request(path, { headers, ...options } = {}) {
   const token = localStorage.getItem("financeiro_token");
   const response = await fetch(`${API_URL}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {})
-    },
-    ...options
+      ...(headers || {})
+    }
   });
 
   if (!response.ok) {
@@ -45,6 +45,7 @@ export const api = {
       return request(`/api/lancamentos?${params.toString()}`);
     },
     criar: (data) => request("/api/lancamentos", { method: "POST", body: JSON.stringify(data) }),
+    interpretarVoz: (audio) => request("/api/lancamentos/voz", { method: "POST", body: audio, headers: { "Content-Type": audio.type || "audio/webm" } }),
     materializarRecorrente: (data) => request("/api/lancamentos/recorrente-mensal", { method: "POST", body: JSON.stringify(data) }),
     atualizar: (id, data) => request(`/api/lancamentos/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     remover: (id) => request(`/api/lancamentos/${id}`, { method: "DELETE" })
