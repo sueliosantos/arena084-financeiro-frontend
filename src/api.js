@@ -69,6 +69,17 @@ export const api = {
 export const money = (value) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0));
 
+// Campo de valor: so aceita digitos e um separador decimal (virgula ou ponto), com ate 2 casas.
+export const valorDigitado = (texto) => {
+  const limpo = String(texto ?? "").replace(/[^\d.,]/g, "");
+  const ultimo = Math.max(limpo.lastIndexOf(","), limpo.lastIndexOf("."));
+  if (ultimo < 0) return limpo;
+  const inteiro = limpo.slice(0, ultimo).replace(/[.,]/g, "");
+  return `${inteiro}${limpo[ultimo]}${limpo.slice(ultimo + 1).slice(0, 2)}`;
+};
+
+export const lerValor = (texto) => Number(valorDigitado(texto).replace(",", "."));
+
 export const dateInput = (value) => new Date(value).toISOString().slice(0, 10);
 
 export const dateBR = (value) => {

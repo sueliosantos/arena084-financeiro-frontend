@@ -1,6 +1,6 @@
-import { Check, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { api, dateInput, money } from "../api.js";
+import { api, dateInput, lerValor, money, valorDigitado } from "../api.js";
 import LancamentoVoz from "../components/LancamentoVoz.jsx";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
@@ -26,6 +26,7 @@ export default function Lancamentos() {
   const [lancamentos, setLancamentos] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [editingItem, setEditingItem] = useState(null);
+  const [editForm, setEditForm] = useState(initialForm);
   const [mensagem, setMensagem] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -40,8 +41,6 @@ export default function Lancamentos() {
     setError("");
     carregar().catch((err) => setError(err.message));
   }, [mes, ano]);
-
-  const filteredCategorias = useMemo(() => categorias.filter((cat) => cat.tipo === form.tipo), [categorias, form.tipo]);
 
   const totals = useMemo(
     () =>
@@ -73,30 +72,44 @@ export default function Lancamentos() {
     [lancamentos]
   );
 
-  const submit = async (event) => {
-    event.preventDefault();
+  const salvar = async (dados, item) => {
     setError("");
     setSuccess("");
-    if (!form.categoriaId) {
+    if (!dados.categoriaId) {
       setError("Escolha uma categoria antes de salvar o lançamento.");
-      return;
+      return false;
+    }
+    const valor = lerValor(dados.valor);
+    if (!dados.valor || !Number.isFinite(valor) || valor < 0) {
+      setError("Informe um valor válido.");
+      return false;
     }
     try {
-      const payload = { ...form, categoriaId: Number(form.categoriaId), valor: Number(form.valor) };
-      if (editingItem?.simulado) {
-        await api.lancamentos.materializarRecorrente({ recorrenteId: editingItem.recorrenteId, mes, ano, ...payload });
-      } else if (editingItem) {
-        await api.lancamentos.atualizar(editingItem.id, payload);
+      const payload = { ...dados, categoriaId: Number(dados.categoriaId), valor };
+      if (item?.simulado) {
+        await api.lancamentos.materializarRecorrente({ recorrenteId: item.recorrenteId, mes, ano, ...payload });
+      } else if (item) {
+        await api.lancamentos.atualizar(item.id, payload);
       } else {
         await api.lancamentos.criar(payload);
       }
-      setForm(initialForm);
-      setEditingItem(null);
       await carregar();
-      setSuccess(editingItem ? "Lançamento atualizado." : "Lançamento cadastrado.");
+      setSuccess(item ? "Lançamento atualizado." : "Lançamento cadastrado.");
+      return true;
     } catch (err) {
       setError(err.message);
+      return false;
     }
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (await salvar(form)) setForm(initialForm);
+  };
+
+  const salvarEdicao = async (event) => {
+    event.preventDefault();
+    if (await salvar(editForm, editingItem)) cancelarEdicao();
   };
 
   const submitWhatsApp = async (event) => {
@@ -127,7 +140,7 @@ export default function Lancamentos() {
     setError("");
     setSuccess("");
     setEditingItem(item);
-    setForm({
+    setEditForm({
       tipo: item.tipo,
       valor: String(item.valor ?? ""),
       descricao: item.descricao || "",
@@ -141,7 +154,7 @@ export default function Lancamentos() {
 
   const cancelarEdicao = () => {
     setEditingItem(null);
-    setForm(initialForm);
+    setEditForm(initialForm);
   };
 
   const remover = async (item) => {
@@ -181,53 +194,19 @@ export default function Lancamentos() {
       <div className="mt-4 grid gap-4 lg:grid-cols-[380px_1fr]">
         <div className="space-y-4">
           <form className="panel space-y-3" onSubmit={submit}>
-            <h2 className="font-semibold">{editingItem ? "Editar lançamento" : "Novo lançamento"}</h2>
-            {!editingItem && (
-              <LancamentoVoz
-                categorias={categorias}
-                onSalvo={async () => {
-                  await carregar();
-                  setSuccess("Lançamento por voz cadastrado.");
-                }}
-              />
-            )}
-            <div className="grid grid-cols-2 gap-2">
-              <select className="field" value={form.tipo} onChange={(event) => setForm({ ...form, tipo: event.target.value, categoriaId: "" })}>
-                <option value="DESPESA">Despesa</option>
-                <option value="RECEITA">Receita</option>
-              </select>
-              <select className="field" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
-                <option value="PENDENTE">Pendente</option>
-                <option value="PAGO">Pago</option>
-              </select>
-            </div>
-            <input className="field" placeholder="Descrição" value={form.descricao} onChange={(event) => setForm({ ...form, descricao: event.target.value })} />
-            <input className="field" placeholder="Observação" value={form.observacao} onChange={(event) => setForm({ ...form, observacao: event.target.value })} />
-            <div className="grid grid-cols-2 gap-2">
-              <input className="field" type="number" step="0.01" placeholder="Valor" value={form.valor} onChange={(event) => setForm({ ...form, valor: event.target.value })} />
-              <input className="field" type="date" value={form.data} onChange={(event) => setForm({ ...form, data: event.target.value })} />
-            </div>
-            <select className="field" value={form.categoriaId} onChange={(event) => setForm({ ...form, categoriaId: event.target.value })}>
-              <option value="">Categoria</option>
-              {filteredCategorias.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.nome}
-                </option>
-              ))}
-            </select>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.contabiliza} onChange={(event) => setForm({ ...form, contabiliza: event.target.checked })} />
-              Contabiliza nos totais e gráficos
-            </label>
+            <h2 className="font-semibold">Novo lançamento</h2>
+            <LancamentoVoz
+              categorias={categorias}
+              onSalvo={async () => {
+                await carregar();
+                setSuccess("Lançamento por voz cadastrado.");
+              }}
+            />
+            <CamposLancamento valores={form} onChange={setForm} categorias={categorias} />
             <button className="btn w-full" type="submit">
-              {editingItem ? <Save size={16} /> : <Plus size={16} />}
-              {editingItem ? "Salvar" : "Adicionar"}
+              <Plus size={16} />
+              Adicionar
             </button>
-            {editingItem && (
-              <button className="btn-secondary w-full" type="button" onClick={cancelarEdicao}>
-                Cancelar edição
-              </button>
-            )}
           </form>
 
           <form className="panel space-y-3" onSubmit={submitWhatsApp}>
@@ -299,7 +278,71 @@ export default function Lancamentos() {
           </div>
         </div>
       </div>
+
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4" onClick={cancelarEdicao}>
+          <form className="panel max-h-full w-full max-w-lg space-y-3 overflow-y-auto" onSubmit={salvarEdicao} onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold">Editar lançamento</h2>
+                <p className="truncate text-sm text-muted">{editingItem.descricao}</p>
+              </div>
+              <button className="btn-secondary h-8 w-8 shrink-0 p-0" type="button" onClick={cancelarEdicao} title="Fechar" aria-label="Fechar">
+                <X size={16} />
+              </button>
+            </div>
+            <CamposLancamento valores={editForm} onChange={setEditForm} categorias={categorias} />
+            <div className="flex justify-end gap-2">
+              <button className="btn-secondary" type="button" onClick={cancelarEdicao}>
+                Cancelar
+              </button>
+              <button className="btn" type="submit">
+                <Save size={16} />
+                Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </section>
+  );
+}
+
+function CamposLancamento({ valores, onChange, categorias }) {
+  const set = (campo, valor) => onChange({ ...valores, [campo]: valor });
+  const filtradas = categorias.filter((cat) => cat.tipo === valores.tipo);
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        <select className="field" value={valores.tipo} onChange={(event) => onChange({ ...valores, tipo: event.target.value, categoriaId: "" })}>
+          <option value="DESPESA">Despesa</option>
+          <option value="RECEITA">Receita</option>
+        </select>
+        <select className="field" value={valores.status} onChange={(event) => set("status", event.target.value)}>
+          <option value="PENDENTE">Pendente</option>
+          <option value="PAGO">Pago</option>
+        </select>
+      </div>
+      <input className="field" placeholder="Descrição" value={valores.descricao} onChange={(event) => set("descricao", event.target.value)} />
+      <input className="field" placeholder="Observação" value={valores.observacao} onChange={(event) => set("observacao", event.target.value)} />
+      <div className="grid grid-cols-2 gap-2">
+        <input className="field" type="text" inputMode="decimal" placeholder="Valor" value={valores.valor} onChange={(event) => set("valor", valorDigitado(event.target.value))} />
+        <input className="field" type="date" value={valores.data} onChange={(event) => set("data", event.target.value)} />
+      </div>
+      <select className="field" value={valores.categoriaId} onChange={(event) => set("categoriaId", event.target.value)}>
+        <option value="">Categoria</option>
+        {filtradas.map((cat) => (
+          <option key={cat.id} value={cat.id}>
+            {cat.nome}
+          </option>
+        ))}
+      </select>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={valores.contabiliza} onChange={(event) => set("contabiliza", event.target.checked)} />
+        Contabiliza nos totais e gráficos
+      </label>
+    </>
   );
 }
 

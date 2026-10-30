@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, Pencil, Save, X } from "lucide-react";
-import { api, dateInput, money } from "../api.js";
+import { api, dateInput, lerValor, money, valorDigitado } from "../api.js";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
@@ -75,7 +75,7 @@ export default function MovimentacaoMes({ ano }) {
     event.preventDefault();
     if (!editingItem) return;
 
-    const valor = Number(String(editForm.valor).replace(/\./g, "").replace(",", "."));
+    const valor = lerValor(editForm.valor);
     if (!editForm.categoriaId) {
       setError("Escolha uma categoria para o lancamento.");
       return;
@@ -244,7 +244,7 @@ export default function MovimentacaoMes({ ano }) {
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1 text-xs text-muted">
                 Valor
-                <input className="field" type="text" value={editForm.valor} onChange={(event) => setEditForm({ ...editForm, valor: event.target.value })} />
+                <input className="field" type="text" inputMode="decimal" value={editForm.valor} onChange={(event) => setEditForm({ ...editForm, valor: valorDigitado(event.target.value) })} />
               </label>
               <label className="space-y-1 text-xs text-muted">
                 Data de pagamento
