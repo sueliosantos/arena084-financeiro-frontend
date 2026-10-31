@@ -11,12 +11,21 @@ body {
   min-width: 320px;
   background: #122646;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-transform: uppercase;
 }
 
 input,
 select,
-button {
+button,
+textarea {
   font: inherit;
+  text-transform: uppercase;
+}
+
+/* Login: e-mail e senha ficam como digitados. */
+input[type="email"],
+input[type="password"] {
+  text-transform: none;
 }
 
 .field {

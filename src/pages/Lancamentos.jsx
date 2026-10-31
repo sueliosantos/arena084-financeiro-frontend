@@ -1,22 +1,14 @@
-import { Check, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { api, dateInput, lerValor, money, valorDigitado } from "../api.js";
+import { api, dateInput, lerValor, money } from "../api.js";
+import EditarLancamentoModal, { CamposLancamento, formLancamentoVazio } from "../components/EditarLancamentoModal.jsx";
 import LancamentoVoz from "../components/LancamentoVoz.jsx";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
 const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-const initialForm = {
-  tipo: "DESPESA",
-  valor: "",
-  descricao: "",
-  observacao: "",
-  data: dateInput(new Date()),
-  status: "PAGO",
-  categoriaId: "",
-  contabiliza: true
-};
+const initialForm = formLancamentoVazio;
 
 export default function Lancamentos() {
   const today = new Date();
@@ -26,7 +18,6 @@ export default function Lancamentos() {
   const [lancamentos, setLancamentos] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [editingItem, setEditingItem] = useState(null);
-  const [editForm, setEditForm] = useState(initialForm);
   const [mensagem, setMensagem] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -107,11 +98,6 @@ export default function Lancamentos() {
     if (await salvar(form)) setForm(initialForm);
   };
 
-  const salvarEdicao = async (event) => {
-    event.preventDefault();
-    if (await salvar(editForm, editingItem)) cancelarEdicao();
-  };
-
   const submitWhatsApp = async (event) => {
     event.preventDefault();
     setError("");
@@ -140,21 +126,6 @@ export default function Lancamentos() {
     setError("");
     setSuccess("");
     setEditingItem(item);
-    setEditForm({
-      tipo: item.tipo,
-      valor: String(item.valor ?? ""),
-      descricao: item.descricao || "",
-      observacao: item.observacao || "",
-      data: dateInput(item.data),
-      status: item.status,
-      categoriaId: item.categoriaId ? String(item.categoriaId) : "",
-      contabiliza: item.contabiliza !== false
-    });
-  };
-
-  const cancelarEdicao = () => {
-    setEditingItem(null);
-    setEditForm(initialForm);
   };
 
   const remover = async (item) => {
@@ -280,71 +251,17 @@ export default function Lancamentos() {
       </div>
 
       {editingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4" onClick={cancelarEdicao}>
-          <form className="panel max-h-full w-full max-w-lg space-y-3 overflow-y-auto" onSubmit={salvarEdicao} onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h2 className="text-lg font-semibold">Editar lançamento</h2>
-                <p className="truncate text-sm text-muted">{editingItem.descricao}</p>
-              </div>
-              <button className="btn-secondary h-8 w-8 shrink-0 p-0" type="button" onClick={cancelarEdicao} title="Fechar" aria-label="Fechar">
-                <X size={16} />
-              </button>
-            </div>
-            <CamposLancamento valores={editForm} onChange={setEditForm} categorias={categorias} />
-            <div className="flex justify-end gap-2">
-              <button className="btn-secondary" type="button" onClick={cancelarEdicao}>
-                Cancelar
-              </button>
-              <button className="btn" type="submit">
-                <Save size={16} />
-                Salvar
-              </button>
-            </div>
-          </form>
-        </div>
+        <EditarLancamentoModal
+          item={editingItem}
+          categorias={categorias}
+          onSalvar={(dados) => salvar(dados, editingItem)}
+          onFechar={() => setEditingItem(null)}
+        />
       )}
     </section>
   );
 }
 
-function CamposLancamento({ valores, onChange, categorias }) {
-  const set = (campo, valor) => onChange({ ...valores, [campo]: valor });
-  const filtradas = categorias.filter((cat) => cat.tipo === valores.tipo);
-
-  return (
-    <>
-      <div className="grid grid-cols-2 gap-2">
-        <select className="field" value={valores.tipo} onChange={(event) => onChange({ ...valores, tipo: event.target.value, categoriaId: "" })}>
-          <option value="DESPESA">Despesa</option>
-          <option value="RECEITA">Receita</option>
-        </select>
-        <select className="field" value={valores.status} onChange={(event) => set("status", event.target.value)}>
-          <option value="PENDENTE">Pendente</option>
-          <option value="PAGO">Pago</option>
-        </select>
-      </div>
-      <input className="field" placeholder="Descrição" value={valores.descricao} onChange={(event) => set("descricao", event.target.value)} />
-      <input className="field" placeholder="Observação" value={valores.observacao} onChange={(event) => set("observacao", event.target.value)} />
-      <div className="grid grid-cols-2 gap-2">
-        <input className="field" type="text" inputMode="decimal" placeholder="Valor" value={valores.valor} onChange={(event) => set("valor", valorDigitado(event.target.value))} />
-        <input className="field" type="date" value={valores.data} onChange={(event) => set("data", event.target.value)} />
-      </div>
-      <select className="field" value={valores.categoriaId} onChange={(event) => set("categoriaId", event.target.value)}>
-        <option value="">Categoria</option>
-        {filtradas.map((cat) => (
-          <option key={cat.id} value={cat.id}>
-            {cat.nome}
-          </option>
-        ))}
-      </select>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={valores.contabiliza} onChange={(event) => set("contabiliza", event.target.checked)} />
-        Contabiliza nos totais e gráficos
-      </label>
-    </>
-  );
-}
 
 function Summary({ label, value }) {
   return (

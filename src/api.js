@@ -25,6 +25,16 @@ async function request(path, { headers, ...options } = {}) {
   return response.json();
 }
 
+// Textos livres sempre gravados em caixa alta.
+const CAMPOS_MAIUSCULOS = ["descricao", "observacao", "nome"];
+const corpo = (data) => {
+  const copia = { ...data };
+  for (const campo of CAMPOS_MAIUSCULOS) {
+    if (typeof copia[campo] === "string") copia[campo] = copia[campo].toLocaleUpperCase("pt-BR");
+  }
+  return JSON.stringify(copia);
+};
+
 export const api = {
   auth: {
     login: (data) => request("/api/session", { method: "POST", body: JSON.stringify(data) }),
@@ -33,8 +43,8 @@ export const api = {
   },
   categorias: {
     listar: () => request("/api/categorias"),
-    criar: (data) => request("/api/categorias", { method: "POST", body: JSON.stringify(data) }),
-    atualizar: (id, data) => request(`/api/categorias/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    criar: (data) => request("/api/categorias", { method: "POST", body: corpo(data) }),
+    atualizar: (id, data) => request(`/api/categorias/${id}`, { method: "PUT", body: corpo(data) }),
     remover: (id) => request(`/api/categorias/${id}`, { method: "DELETE" })
   },
   lancamentos: {
@@ -44,22 +54,22 @@ export const api = {
       if (filtros.status) params.set("status", filtros.status);
       return request(`/api/lancamentos?${params.toString()}`);
     },
-    criar: (data) => request("/api/lancamentos", { method: "POST", body: JSON.stringify(data) }),
+    criar: (data) => request("/api/lancamentos", { method: "POST", body: corpo(data) }),
     interpretarVoz: (audio) => request("/api/lancamentos/voz", { method: "POST", body: audio, headers: { "Content-Type": audio.type || "audio/webm" } }),
-    materializarRecorrente: (data) => request("/api/lancamentos/recorrente-mensal", { method: "POST", body: JSON.stringify(data) }),
-    atualizar: (id, data) => request(`/api/lancamentos/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    materializarRecorrente: (data) => request("/api/lancamentos/recorrente-mensal", { method: "POST", body: corpo(data) }),
+    atualizar: (id, data) => request(`/api/lancamentos/${id}`, { method: "PUT", body: corpo(data) }),
     remover: (id) => request(`/api/lancamentos/${id}`, { method: "DELETE" })
   },
   recorrentes: {
     listar: () => request("/api/recorrentes"),
-    criar: (data) => request("/api/recorrentes", { method: "POST", body: JSON.stringify(data) }),
-    atualizar: (id, data) => request(`/api/recorrentes/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    criar: (data) => request("/api/recorrentes", { method: "POST", body: corpo(data) }),
+    atualizar: (id, data) => request(`/api/recorrentes/${id}`, { method: "PUT", body: corpo(data) }),
     remover: (id) => request(`/api/recorrentes/${id}`, { method: "DELETE" })
   },
   listaCompras: {
     listar: () => request("/api/lista-compras"),
-    criar: (data) => request("/api/lista-compras", { method: "POST", body: JSON.stringify(data) }),
-    atualizar: (id, data) => request(`/api/lista-compras/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    criar: (data) => request("/api/lista-compras", { method: "POST", body: corpo(data) }),
+    atualizar: (id, data) => request(`/api/lista-compras/${id}`, { method: "PUT", body: corpo(data) }),
     remover: (id) => request(`/api/lista-compras/${id}`, { method: "DELETE" }),
     realizar: () => request("/api/lista-compras/realizado", { method: "DELETE" })
   },

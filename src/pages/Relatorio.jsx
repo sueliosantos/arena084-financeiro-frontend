@@ -1,6 +1,7 @@
-import { Check, ChevronDown, FileDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, FileDown, Pencil, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { api, dateBR, money } from "../api.js";
+import { api, dateBR, lerValor, money } from "../api.js";
+import EditarLancamentoModal from "../components/EditarLancamentoModal.jsx";
 import Notice from "../components/Notice.jsx";
 import PageTitle from "../components/PageTitle.jsx";
 
@@ -45,7 +46,7 @@ function imprimirPorCategoria({ itens, periodo, filtros, receitas, despesas, tot
       const desp = lista.filter((i) => i.tipo === "DESPESA").reduce((s, i) => s + Number(i.valor), 0);
       return { nome, lista, liquido: rec - desp };
     })
-    .sort((a, b) => Math.abs(b.liquido) - Math.abs(a.liquido));
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
   const base = secoes.reduce((s, g) => s + Math.abs(g.liquido), 0) || 1;
   const classe = (v) => (v >= 0 ? "rec" : "desp");
 
@@ -56,46 +57,61 @@ function imprimirPorCategoria({ itens, periodo, filtros, receitas, despesas, tot
         <td class="num">${((Math.abs(g.liquido) / base) * 100).toFixed(1).replace(".", ",")}%</td></tr>`,
     )
     .join("");
+  const colunas = `<colgroup><col style="width:13%"><col style="width:37%"><col style="width:13%"><col style="width:22%"><col style="width:15%"></colgroup>`;
   const detalhes = secoes
     .map(
-      (g) => `<section><h3>${escapar(g.nome)} <span>${g.lista.length} lançamento(s)</span></h3>
-      <table><thead><tr><th>Data</th><th>Descrição</th><th>Status</th><th>Obs</th><th class="num">Valor</th></tr></thead><tbody>
+      (g) => `<section class="cat">
+      <div class="cat-topo"><strong>${escapar(g.nome)}</strong><span>${g.lista.length} lançamento(s)</span>
+        <b class="${classe(g.liquido)}">${money(Math.abs(g.liquido))}</b></div>
+      <table>${colunas}<thead><tr><th>Data</th><th>Descrição</th><th>Status</th><th>Obs</th><th class="num">Valor</th></tr></thead><tbody>
       ${g.lista
         .map(
           (i) => `<tr class="${i.contabiliza === false ? "nc" : ""}"><td>${dateBR(i.data)}</td><td>${escapar(i.descricao)}</td>
-            <td>${i.status === "PAGO" ? "Pago" : "Pendente"}</td><td>${escapar(i.observacao || "")}</td>
+            <td><span class="st ${i.status === "PAGO" ? "pago" : "pend"}">${i.status === "PAGO" ? "Pago" : "Pendente"}</span></td>
+            <td>${escapar(i.observacao || "")}</td>
             <td class="num ${i.tipo === "RECEITA" ? "rec" : "desp"}">${money(i.valor)}</td></tr>`,
         )
         .join("")}
-      </tbody><tfoot><tr><td colspan="4">Subtotal</td><td class="num ${classe(g.liquido)}">${money(Math.abs(g.liquido))}</td></tr></tfoot></table></section>`,
+      </tbody></table></section>`,
     )
     .join("");
 
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório por categoria - ${escapar(periodo)}</title>
   <style>
-    *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:#1f2937;margin:24px;font-size:12px}
-    h1{font-size:20px;margin:0} .sub{color:#6b7280;margin:4px 0 16px}
-    h2{font-size:14px;margin:20px 0 8px;border-bottom:2px solid #1f2937;padding-bottom:4px}
-    h3{font-size:13px;margin:16px 0 6px;background:#eef2f7;padding:6px 8px;border-radius:4px} h3 span{font-weight:normal;color:#6b7280;font-size:11px}
-    table{width:100%;border-collapse:collapse} th,td{padding:4px 6px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
-    th{font-size:11px;color:#6b7280;text-transform:uppercase} .num{text-align:right;white-space:nowrap}
-    .rec{color:#047857} .desp{color:#b91c1c} tfoot td{font-weight:bold;border-bottom:none}
-    tr.nc td{color:#9ca3af} .totais{margin-top:20px;max-width:320px;margin-left:auto} .totais td{font-size:13px}
-    .totais tr:last-child td{font-weight:bold;border-top:2px solid #1f2937}
-    .nota{color:#6b7280;font-size:10px;margin-top:6px;text-align:right}
-    section{break-inside:avoid-page} thead{display:table-header-group}
-    @page{margin:14mm}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font-family:Arial,Helvetica,sans-serif;color:#1f2937;margin:24px;font-size:11.5px;text-transform:uppercase}
+    .capa{text-align:center;background:linear-gradient(135deg,#0f2a5c,#1d4ed8);color:#fff;border-radius:10px;padding:18px 12px;margin-bottom:18px}
+    .capa h1{font-size:22px;margin:0;letter-spacing:.04em} .capa p{margin:6px 0 0;font-size:13px;opacity:.9}
+    h2{font-size:13px;margin:22px 0 8px;color:#0f2a5c;letter-spacing:.06em}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    th,td{padding:5px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+    th{font-size:10px;color:#475569;background:#e2e8f0;letter-spacing:.05em}
+    tbody tr:nth-child(even) td{background:#f8fafc}
+    .num{text-align:right;white-space:nowrap}
+    .rec{color:#047857} .desp{color:#b91c1c}
+    tr.nc td{color:#94a3b8}
+    .resumo{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+    .cat{margin-top:14px;border:1px solid #dbe3ef;border-radius:8px;overflow:hidden;break-inside:avoid-page}
+    .cat-topo{display:flex;align-items:baseline;gap:10px;padding:8px 12px;background:#dbeafe;border-left:5px solid #1d4ed8}
+    .cat-topo strong{font-size:13px;color:#0f2a5c} .cat-topo span{color:#64748b;font-size:10px;flex:1} .cat-topo b{font-size:13px}
+    .st{display:inline-block;padding:1px 7px;border-radius:999px;font-size:9.5px;font-weight:bold}
+    .st.pago{background:#dcfce7;color:#166534} .st.pend{background:#fef3c7;color:#92400e}
+    .totais{margin:22px 0 0 auto;max-width:340px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+    .totais td{font-size:13px;padding:7px 12px} .totais tr:last-child td{font-weight:bold;background:#0f2a5c;color:#fff}
+    .nota{color:#64748b;font-size:9.5px;margin-top:6px;text-align:right;text-transform:none}
+    thead{display:table-header-group}
+    @page{margin:12mm}
   </style></head><body>
-  <h1>Relatório por categoria</h1>
-  <p class="sub">${escapar(periodo)}${filtros ? " · " + escapar(filtros) : ""}</p>
+  <header class="capa"><h1>Relatório por categoria</h1><p>${escapar(periodo)}${filtros ? " · " + escapar(filtros) : ""}</p></header>
   <h2>Resumo</h2>
-  <table><thead><tr><th>Categoria</th><th class="num">Qtd</th><th class="num">Total</th><th class="num">%</th></tr></thead><tbody>${resumo}</tbody></table>
+  <div class="resumo"><table><colgroup><col style="width:55%"><col style="width:10%"><col style="width:20%"><col style="width:15%"></colgroup>
+  <thead><tr><th>Categoria</th><th class="num">Qtd</th><th class="num">Total</th><th class="num">%</th></tr></thead><tbody>${resumo}</tbody></table></div>
   <h2>Lançamentos por categoria</h2>
   ${detalhes || "<p>Nenhum lançamento no filtro.</p>"}
   <table class="totais"><tbody>
     <tr><td>Receitas</td><td class="num rec">${money(receitas)}</td></tr>
     <tr><td>Despesas</td><td class="num desp">${money(despesas)}</td></tr>
-    <tr><td>Total</td><td class="num ${classe(total)}">${money(total)}</td></tr>
+    <tr><td>Total</td><td class="num">${money(total)}</td></tr>
   </tbody></table>
   <p class="nota">Totais finais consideram só lançamentos pagos e contabilizados (em cinza: não contabiliza).</p>
   <script>window.onload=function(){window.print()}</script>
@@ -129,6 +145,9 @@ export default function Relatorio() {
   const [tipo, setTipo] = useState("");
   const [status, setStatus] = useState("");
   const [busca, setBusca] = useState("");
+  const [editando, setEditando] = useState(null);
+  const [recarga, setRecarga] = useState(0);
+  const [success, setSuccess] = useState("");
   const [categorias, setCategorias] = useState([]);
   const [lancamentos, setLancamentos] = useState([]);
   const [error, setError] = useState("");
@@ -164,7 +183,7 @@ export default function Relatorio() {
     return () => {
       ativo = false;
     };
-  }, [mesInicio, mesFim, ano, tipo, status]);
+  }, [mesInicio, mesFim, ano, tipo, status, recarga]);
 
   useEffect(() => {
     const fecharClique = (event) => {
@@ -237,6 +256,40 @@ export default function Relatorio() {
       total: receitas - despesas,
     };
   }, [filtered, categoriaIds]);
+
+  const salvarEdicao = async (dados) => {
+    setError("");
+    setSuccess("");
+    if (!dados.categoriaId) {
+      setError("Escolha uma categoria antes de salvar o lançamento.");
+      return false;
+    }
+    const valor = lerValor(dados.valor);
+    if (!dados.valor || !Number.isFinite(valor) || valor < 0) {
+      setError("Informe um valor válido.");
+      return false;
+    }
+    try {
+      const payload = { ...dados, categoriaId: Number(dados.categoriaId), valor };
+      if (editando.simulado) {
+        const data = new Date(editando.data);
+        await api.lancamentos.materializarRecorrente({
+          recorrenteId: editando.recorrenteId,
+          mes: data.getUTCMonth() + 1,
+          ano: data.getUTCFullYear(),
+          ...payload,
+        });
+      } else {
+        await api.lancamentos.atualizar(editando.id, payload);
+      }
+      setRecarga((n) => n + 1);
+      setSuccess("Lançamento atualizado.");
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    }
+  };
 
   const gerarPdf = () => {
     const periodo =
@@ -359,19 +412,16 @@ export default function Relatorio() {
         }
       />
 
-      <Notice error={error} />
+      <Notice error={error} success={success} />
 
       <div className='mt-4 flex flex-col gap-2 sm:flex-row sm:items-center'>
-        <label className='relative flex-1'>
-          <Search size={16} className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted' />
-          <input
-            className='field w-full pl-9'
-            type='search'
-            placeholder='Buscar por descrição'
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-        </label>
+        <input
+          className='field w-full flex-1'
+          type='search'
+          placeholder='Buscar por descrição'
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+        />
         <button type='button' className='btn whitespace-nowrap' onClick={gerarPdf} disabled={!filtered.length}>
           <FileDown size={16} />
           PDF por categoria
@@ -390,6 +440,7 @@ export default function Relatorio() {
               <th className='table-cell'>Obs</th>
               <th className='table-cell w-20 text-center'>CONT.</th>
               <th className='table-cell text-right'>Valor</th>
+              <th className='table-cell w-14' aria-label='Ações' />
             </tr>
           </thead>
 
@@ -418,6 +469,17 @@ export default function Relatorio() {
                 >
                   {money(item.valor)}
                 </td>
+                <td className='table-cell text-right'>
+                  <button
+                    className='btn-secondary h-8 w-8 p-0'
+                    type='button'
+                    onClick={() => setEditando(item)}
+                    title='Editar lançamento'
+                    aria-label='Editar lançamento'
+                  >
+                    <Pencil size={14} />
+                  </button>
+                </td>
               </tr>
             ))}
 
@@ -428,6 +490,7 @@ export default function Relatorio() {
               <td className='table-cell text-right font-semibold text-brand'>
                 {money(receitas)}
               </td>
+              <td className='table-cell' />
             </tr>
 
             <tr className='bg-black/20'>
@@ -437,6 +500,7 @@ export default function Relatorio() {
               <td className='table-cell text-right font-semibold text-danger'>
                 {money(despesas)}
               </td>
+              <td className='table-cell' />
             </tr>
 
             <tr className='bg-black/30'>
@@ -450,10 +514,20 @@ export default function Relatorio() {
               >
                 {money(total)}
               </td>
+              <td className='table-cell' />
             </tr>
           </tbody>
         </table>
       </div>
+
+      {editando && (
+        <EditarLancamentoModal
+          item={editando}
+          categorias={categorias}
+          onSalvar={salvarEdicao}
+          onFechar={() => setEditando(null)}
+        />
+      )}
     </section>
   );
 }
