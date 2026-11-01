@@ -17,6 +17,7 @@ export default function MovimentacaoMes({ ano }) {
   const [updatingId, setUpdatingId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [editForm, setEditForm] = useState(emptyEditForm);
+  const [statusFiltro, setStatusFiltro] = useState("");
 
   const carregar = async () => {
     setError("");
@@ -137,8 +138,11 @@ export default function MovimentacaoMes({ ano }) {
   );
 
   const sortedItems = useMemo(
-    () => [...items].sort((a, b) => (a.status === "PAGO" ? 0 : 1) - (b.status === "PAGO" ? 0 : 1)),
-    [items]
+    () =>
+      items
+        .filter((item) => !statusFiltro || (statusFiltro === "PAGO" ? item.status === "PAGO" : item.status !== "PAGO"))
+        .sort((a, b) => (a.status === "PAGO" ? 0 : 1) - (b.status === "PAGO" ? 0 : 1)),
+    [items, statusFiltro]
   );
 
   const editCategorias = useMemo(
@@ -151,13 +155,20 @@ export default function MovimentacaoMes({ ano }) {
       <PageTitle
         title="Movimentação Mês"
         actions={
-          <select className="field w-full sm:w-48" value={mes} onChange={(event) => setMes(event.target.value)}>
-            {monthNames.map((name, index) => (
-              <option key={name} value={index + 1}>
-                {name} / {ano}
-              </option>
-            ))}
-          </select>
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <select className="field sm:w-44" value={statusFiltro} onChange={(event) => setStatusFiltro(event.target.value)}>
+              <option value="">Pagos e pendentes</option>
+              <option value="PAGO">Pagos</option>
+              <option value="PENDENTE">Pendentes</option>
+            </select>
+            <select className="field sm:w-48" value={mes} onChange={(event) => setMes(event.target.value)}>
+              {monthNames.map((name, index) => (
+                <option key={name} value={index + 1}>
+                  {name} / {ano}
+                </option>
+              ))}
+            </select>
+          </div>
         }
       />
       <Notice error={error} success={success} />
