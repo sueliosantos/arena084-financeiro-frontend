@@ -221,7 +221,7 @@ export default function Lancamentos() {
                     <td className="table-cell truncate" title={item.descricao}>{item.descricao}</td>
                     <td className="table-cell truncate text-muted" title={item.observacao || ""}>{item.observacao || "-"}</td>
                     <td className="table-cell truncate" title={item.categoria?.nome}>{item.categoria?.nome}</td>
-                    <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
+                    <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-ok" : "text-danger"}`}>{money(item.valor)}</td>
                     <td className="table-cell">
                       <div className="flex justify-end gap-1">
                         <button

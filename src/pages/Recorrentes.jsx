@@ -176,7 +176,7 @@ export default function Recorrentes() {
                   </td>
                   <td className="table-cell">{item.diaPagamento || "-"}</td>
                   <td className="table-cell">{item.ativo ? "Sim" : "Não"}</td>
-                  <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
+                  <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-ok" : "text-danger"}`}>{money(item.valor)}</td>
                   <td className="table-cell">
                     <div className="flex justify-end gap-2">
                       <button className="btn-secondary h-8" type="button" onClick={() => toggle(item)}>

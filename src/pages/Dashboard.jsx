@@ -57,27 +57,27 @@ export default function Dashboard({ ano, setAno }) {
       <Notice error={error} />
 
       <div className="grid gap-3 md:grid-cols-4">
-        <Metric label="Receitas" value={totals.receitas} tone="text-brand" />
+        <Metric label="Receitas" value={totals.receitas} tone="text-ok" />
         <Metric label="Despesas" value={totals.despesas} tone="text-danger" />
         <Metric label="Pendente" value={totals.pendente} tone="text-warn" />
-        <Metric label="Saldo" value={totals.saldo} tone={totals.saldo >= 0 ? "text-brand" : "text-danger"} />
+        <Metric label="Saldo" value={totals.saldo} tone={totals.saldo >= 0 ? "text-ok" : "text-danger"} />
       </div>
 
       <div className="panel mt-4 h-[430px]">
         {loading ? (
-          <div className="flex h-full items-center justify-center text-sm text-slate-500">Carregando...</div>
+          <div className="flex h-full items-center justify-center text-sm text-muted">Carregando...</div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#28466f" />
-              <XAxis dataKey="nome" stroke="#a7bdd8" />
-              <YAxis tickFormatter={(value) => `R$ ${value}`} width={80} stroke="#a7bdd8" />
-              <Tooltip formatter={(value) => money(value)} contentStyle={{ background: "#172f53", border: "1px solid #28466f", color: "#eef6ff" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <XAxis dataKey="nome" stroke="#71717a" />
+              <YAxis tickFormatter={(value) => `R$ ${value}`} width={80} stroke="#71717a" />
+              <Tooltip formatter={(value) => money(value)} cursor={{ fill: "rgba(255,255,255,0.04)" }} contentStyle={{ background: "#111113", border: "1px solid #27272a", borderRadius: 12, color: "#fafafa" }} />
               <Legend />
-              <Bar dataKey="receitas" name="Receitas" fill="#60a5fa" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="despesas" name="Despesas" fill="#fb7185" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="pendente" name="Pendente" fill="#facc15" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="saldo" name="Saldo" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="receitas" name="Receitas" fill="#34d399" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="despesas" name="Despesas" fill="#f87171" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="pendente" name="Pendente" fill="#fbbf24" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="saldo" name="Saldo" fill="#e4e4e7" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -103,7 +103,7 @@ export default function Dashboard({ ano, setAno }) {
                 <td className="table-cell">{item.tipo}</td>
                 <td className="table-cell">{item.status}</td>
                 <td className="table-cell">{item.origem}</td>
-                <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
+                <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-ok" : "text-danger"}`}>{money(item.valor)}</td>
               </tr>
             ))}
           </tbody>
@@ -116,8 +116,8 @@ export default function Dashboard({ ano, setAno }) {
 function Metric({ label, value, tone }) {
   return (
     <div className="panel">
-      <p className="text-sm text-muted">{label}</p>
-      <strong className={`mt-1 block text-2xl ${tone}`}>{money(value)}</strong>
+      <p className="text-[11px] font-semibold tracking-wider text-muted">{label}</p>
+      <strong className={`mt-2 block text-2xl font-bold tracking-tight ${tone}`}>{money(value)}</strong>
     </div>
   );
 }

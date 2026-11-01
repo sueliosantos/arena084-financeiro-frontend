@@ -122,7 +122,7 @@ export default function LancamentoVoz({ categorias, onSalvo }) {
       {error && !form && <p className="text-sm text-danger">{error}</p>}
 
       {form && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+        <div className="overlay">
           <form className="panel w-full max-w-lg space-y-4" onSubmit={salvar}>
             <div className="flex items-start justify-between gap-4">
               <div>

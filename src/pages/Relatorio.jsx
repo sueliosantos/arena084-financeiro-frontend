@@ -80,9 +80,9 @@ function imprimirPorCategoria({ itens, periodo, filtros, receitas, despesas, tot
   <style>
     *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     body{font-family:Arial,Helvetica,sans-serif;color:#1f2937;margin:24px;font-size:11.5px;text-transform:uppercase}
-    .capa{text-align:center;background:linear-gradient(135deg,#0f2a5c,#1d4ed8);color:#fff;border-radius:10px;padding:18px 12px;margin-bottom:18px}
+    .capa{text-align:center;background:linear-gradient(135deg,#09090b,#3f3f46);color:#fff;border-radius:10px;padding:18px 12px;margin-bottom:18px}
     .capa h1{font-size:22px;margin:0;letter-spacing:.04em} .capa p{margin:6px 0 0;font-size:13px;opacity:.9}
-    h2{font-size:13px;margin:22px 0 8px;color:#0f2a5c;letter-spacing:.06em}
+    h2{font-size:13px;margin:22px 0 8px;color:#18181b;letter-spacing:.06em}
     table{width:100%;border-collapse:collapse;table-layout:fixed}
     th,td{padding:5px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
     th{font-size:10px;color:#475569;background:#e2e8f0;letter-spacing:.05em}
@@ -91,13 +91,13 @@ function imprimirPorCategoria({ itens, periodo, filtros, receitas, despesas, tot
     .rec{color:#047857} .desp{color:#b91c1c}
     tr.nc td{color:#94a3b8}
     .resumo{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
-    .cat{margin-top:14px;border:1px solid #dbe3ef;border-radius:8px;overflow:hidden;break-inside:avoid-page}
-    .cat-topo{display:flex;align-items:baseline;gap:10px;padding:8px 12px;background:#dbeafe;border-left:5px solid #1d4ed8}
-    .cat-topo strong{font-size:13px;color:#0f2a5c} .cat-topo span{color:#64748b;font-size:10px;flex:1} .cat-topo b{font-size:13px}
+    .cat{margin-top:14px;border:1px solid #e4e4e7;border-radius:8px;overflow:hidden;break-inside:avoid-page}
+    .cat-topo{display:flex;align-items:baseline;gap:10px;padding:8px 12px;background:#f4f4f5;border-left:5px solid #18181b}
+    .cat-topo strong{font-size:13px;color:#18181b} .cat-topo span{color:#64748b;font-size:10px;flex:1} .cat-topo b{font-size:13px}
     .st{display:inline-block;padding:1px 7px;border-radius:999px;font-size:9.5px;font-weight:bold}
     .st.pago{background:#dcfce7;color:#166534} .st.pend{background:#fef3c7;color:#92400e}
     .totais{margin:22px 0 0 auto;max-width:340px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
-    .totais td{font-size:13px;padding:7px 12px} .totais tr:last-child td{font-weight:bold;background:#0f2a5c;color:#fff}
+    .totais td{font-size:13px;padding:7px 12px} .totais tr:last-child td{font-weight:bold;background:#18181b;color:#fff}
     .nota{color:#64748b;font-size:9.5px;margin-top:6px;text-align:right;text-transform:none}
     thead{display:table-header-group}
     @page{margin:12mm}
@@ -379,7 +379,7 @@ export default function Relatorio() {
               </button>
 
               {categoriaAberto && (
-                <div className='absolute right-0 z-20 mt-1 max-h-72 w-72 overflow-y-auto rounded-md border border-line bg-panel p-2 shadow-lg shadow-black/40'>
+                <div className='absolute right-0 z-20 mt-1 max-h-72 w-72 overflow-y-auto rounded-xl border border-line bg-panel p-2 shadow-lg shadow-black/40'>
                   <label className='flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-black/20'>
                     <input
                       type='checkbox'
@@ -464,7 +464,7 @@ export default function Relatorio() {
                 </td>
                 <td
                   className={`table-cell text-right font-semibold ${
-                    item.tipo === "RECEITA" ? "text-brand" : "text-danger"
+                    item.tipo === "RECEITA" ? "text-ok" : "text-danger"
                   }`}
                 >
                   {money(item.valor)}
@@ -487,7 +487,7 @@ export default function Relatorio() {
               <td className='table-cell font-semibold' colSpan={7}>
                 Receitas
               </td>
-              <td className='table-cell text-right font-semibold text-brand'>
+              <td className='table-cell text-right font-semibold text-ok'>
                 {money(receitas)}
               </td>
               <td className='table-cell' />
@@ -509,7 +509,7 @@ export default function Relatorio() {
               </td>
               <td
                 className={`table-cell text-right font-bold ${
-                  total >= 0 ? "text-brand" : "text-danger"
+                  total >= 0 ? "text-ok" : "text-danger"
                 }`}
               >
                 {money(total)}

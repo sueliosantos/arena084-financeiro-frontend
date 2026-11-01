@@ -163,10 +163,10 @@ export default function MovimentacaoMes({ ano }) {
       <Notice error={error} success={success} />
 
       <div className="grid gap-3 md:grid-cols-4">
-        <Metric label="Receitas confirmadas" value={totals.receitas} tone="text-brand" />
+        <Metric label="Receitas confirmadas" value={totals.receitas} tone="text-ok" />
         <Metric label="Despesas confirmadas" value={totals.despesas} tone="text-danger" />
         <Metric label="Pendente" value={totals.pendente} tone="text-warn" />
-        <Metric label="Saldo confirmado" value={totals.saldo} tone={totals.saldo >= 0 ? "text-brand" : "text-danger"} />
+        <Metric label="Saldo confirmado" value={totals.saldo} tone={totals.saldo >= 0 ? "text-ok" : "text-danger"} />
       </div>
 
       <div className="panel mt-4 overflow-x-auto p-0">
@@ -198,7 +198,7 @@ export default function MovimentacaoMes({ ano }) {
                 </td>
                 <td className="table-cell">{item.contabiliza === false ? "Não" : "Sim"}</td>
                 <td className="table-cell text-muted">{item.observacao || "-"}</td>
-                <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-brand" : "text-danger"}`}>{money(item.valor)}</td>
+                <td className={`table-cell text-right font-semibold ${item.tipo === "RECEITA" ? "text-ok" : "text-danger"}`}>{money(item.valor)}</td>
                 <td className="table-cell text-right">
                   <div className="flex justify-end gap-2">
                     <button
@@ -229,7 +229,7 @@ export default function MovimentacaoMes({ ano }) {
       </div>
 
       {editingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+        <div className="overlay">
           <form className="panel w-full max-w-lg space-y-4" onSubmit={salvarEdicao}>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -309,8 +309,8 @@ export default function MovimentacaoMes({ ano }) {
 function Metric({ label, value, tone }) {
   return (
     <div className="panel">
-      <p className="text-sm text-muted">{label}</p>
-      <strong className={`mt-1 block text-xl ${tone}`}>{money(value)}</strong>
+      <p className="text-[11px] font-semibold tracking-wider text-muted">{label}</p>
+      <strong className={`mt-2 block text-xl font-bold tracking-tight ${tone}`}>{money(value)}</strong>
     </div>
   );
 }

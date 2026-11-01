@@ -34,7 +34,7 @@ export default function EditarLancamentoModal({ item, categorias, onSalvar, onFe
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4" onClick={onFechar}>
+    <div className="overlay" onClick={onFechar}>
       <form className="panel max-h-full w-full max-w-lg space-y-3 overflow-y-auto" onSubmit={submit} onClick={(event) => event.stopPropagation()}>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">

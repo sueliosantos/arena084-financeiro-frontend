@@ -31,14 +31,14 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-canvas px-4 text-ink">
-      <form className="panel w-full max-w-md space-y-4" onSubmit={submit}>
+    <main className="flex min-h-screen items-center justify-center px-4 text-ink">
+      <form className="panel w-full max-w-md space-y-4 p-6" onSubmit={submit}>
         <div className="flex items-center gap-3 border-b border-line pb-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-md bg-brand text-slate-950">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-zinc-950 shadow-[0_8px_30px_-8px_rgba(255,255,255,0.5)]">
             <LockKeyhole size={22} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand">ARENA084</p>
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-muted">ARENA084</p>
             <h1 className="text-xl font-semibold">Acesso Financeiro</h1>
           </div>
         </div>
