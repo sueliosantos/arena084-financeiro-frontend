@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Categorias from "./pages/Categorias.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Lancamentos from "./pages/Lancamentos.jsx";
-import ListaCompras from "./pages/ListaCompras.jsx";
+import Compras from "./pages/Compras.jsx";
 import Login from "./pages/Login.jsx";
 import MovimentacaoMes from "./pages/MovimentacaoMes.jsx";
 import Recorrentes from "./pages/Recorrentes.jsx";
@@ -17,7 +17,7 @@ const tabs = [
   { id: "relatorio", label: "Relatório", icon: ClipboardList, component: Relatorio },
   { id: "vendas-ativos", label: "Vendas Ativos", icon: TrendingUp, component: VendasAtivos },
   { id: "recorrentes", label: "Recorrentes", icon: Repeat, component: Recorrentes },
-  { id: "lista-compras", label: "Compras", icon: ShoppingCart, component: ListaCompras },
+  { id: "lista-compras", label: "Compras", icon: ShoppingCart, component: Compras },
   { id: "categorias", label: "Categoria", icon: FolderTree, component: Categorias }
 ];
 

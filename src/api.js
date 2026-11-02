@@ -73,6 +73,12 @@ export const api = {
     remover: (id) => request(`/api/lista-compras/${id}`, { method: "DELETE" }),
     realizar: () => request("/api/lista-compras/realizado", { method: "DELETE" })
   },
+  datasImportantes: {
+    listar: () => request("/api/datas-importantes"),
+    criar: (data) => request("/api/datas-importantes", { method: "POST", body: corpo(data) }),
+    atualizar: (id, data) => request(`/api/datas-importantes/${id}`, { method: "PUT", body: corpo(data) }),
+    remover: (id) => request(`/api/datas-importantes/${id}`, { method: "DELETE" })
+  },
   vendasAtivos: {
     listar: () => request("/api/vendas-ativos"),
     criar: (data) => request("/api/vendas-ativos", { method: "POST", body: corpo(data) }),
