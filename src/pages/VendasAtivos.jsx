@@ -34,6 +34,14 @@ const calcular = (venda) => {
   return { totalCompra, totalVenda, resultado: totalVenda - totalCompra };
 };
 
+// Lucro/prejuizo em % sobre o valor de compra: "+3,70%" / "-1,25%".
+const percentual = (resultado, compra) => {
+  if (!compra) return "";
+  const pct = (resultado / compra) * 100;
+  const texto = Math.abs(pct).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${pct > 0 ? "+" : pct < 0 ? "-" : ""}${texto}%`;
+};
+
 const normalizar = (texto) =>
   String(texto ?? "")
     .normalize("NFD")
@@ -251,7 +259,9 @@ export default function VendasAtivos({ ano }) {
         <p className="text-[11px] font-semibold tracking-wider text-muted">
           Resultado líquido {anoFiltro === TODOS ? "(todos os anos)" : anoFiltro} · {filtradas.length} venda(s)
         </p>
-        <strong className={`mt-2 block text-4xl font-extrabold tracking-tight ${tonResultado(totais.resultado)}`}>{money(totais.resultado)}</strong>
+        <strong className={`mt-2 block text-4xl font-extrabold tracking-tight ${tonResultado(totais.resultado)}`}>{money(totais.resultado)}
+          <span className="ml-3 text-xl font-bold">{percentual(totais.resultado, totais.compra)}</span>
+        </strong>
       </div>
 
       <div className="panel overflow-x-auto p-0">
@@ -286,7 +296,9 @@ export default function VendasAtivos({ ano }) {
                   <td className="table-cell">
                     <span className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-0.5 text-[11px] font-semibold">{v.tipo}</span>
                   </td>
-                  <td className={`table-cell text-right font-semibold ${tonResultado(resultado)}`}>{money(resultado)}</td>
+                  <td className={`table-cell text-right font-semibold ${tonResultado(resultado)}`}>
+                    {money(resultado)} <span className="ml-1 text-xs font-medium">{percentual(resultado, totalCompra)}</span>
+                  </td>
                   <td className="table-cell text-muted">{v.observacao || "-"}</td>
                   <td className="table-cell">
                     <div className="flex justify-end gap-1">
@@ -318,7 +330,9 @@ export default function VendasAtivos({ ano }) {
                 <td className="table-cell text-right">{money(totais.compra)}</td>
                 <td className="table-cell text-right">{money(totais.venda)}</td>
                 <td className="table-cell" />
-                <td className={`table-cell text-right ${tonResultado(totais.resultado)}`}>{money(totais.resultado)}</td>
+                <td className={`table-cell text-right ${tonResultado(totais.resultado)}`}>
+                  {money(totais.resultado)} <span className="ml-1 text-xs font-medium">{percentual(totais.resultado, totais.compra)}</span>
+                </td>
                 <td className="table-cell" colSpan={2} />
               </tr>
             </tfoot>
@@ -394,7 +408,9 @@ function VendaModal({ venda, tipos, onSalvar, onFechar }) {
           </div>
           <div>
             <p className="text-[11px] text-muted">Resultado</p>
-            <strong className={tonResultado(previa.resultado)}>{money(previa.resultado)}</strong>
+            <strong className={tonResultado(previa.resultado)}>
+              {money(previa.resultado)} <span className="text-xs font-medium">{percentual(previa.resultado, previa.totalCompra)}</span>
+            </strong>
           </div>
         </div>
         <div className="flex justify-end gap-2">
